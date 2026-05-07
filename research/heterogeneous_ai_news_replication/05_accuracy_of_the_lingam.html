@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Accuracy of the LiNGAM Estimation | Replication Notebook</title>
+<style>
+
+:root {
+  --bg: #0f1115;
+  --panel: #161a22;
+  --panel-2: #1c2230;
+  --text: #e8ecf3;
+  --muted: #a9b4c7;
+  --accent: #ff9f43;
+  --accent-2: #ff7b54;
+  --line: #2a3142;
+  --good: #6ee7b7;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background:
+    radial-gradient(circle at top left, rgba(255,159,67,0.10), transparent 28%),
+    radial-gradient(circle at top right, rgba(255,123,84,0.08), transparent 24%),
+    var(--bg);
+  color: var(--text);
+  font-family: Inter, Segoe UI, Arial, sans-serif;
+  line-height: 1.65;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover { text-decoration: underline; }
+
+.navbar {
+  position: static;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  gap: 36px;
+  padding: 18px 20px;
+  background: rgba(15,17,21,0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+
+.navbar a {
+  color: #f3f5f8;
+  text-decoration: none;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.navbar a:hover {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.container {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 34px 24px 40px;
+}
+
+.hero {
+  background: linear-gradient(135deg, rgba(255,159,67,0.12), rgba(255,123,84,0.08));
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 28px 30px;
+  box-shadow: 0 14px 40px rgba(0,0,0,0.25);
+  margin-bottom: 0;
+}
+
+.kicker {
+  color: var(--accent);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+}
+
+h1 {
+  margin: 8px 0 10px;
+  font-size: 38px;
+  line-height: 1.15;
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.hero-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,159,67,0.38);
+  background: rgba(255,159,67,0.10);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.hero-button:hover {
+  text-decoration: none;
+  background: rgba(255,159,67,0.17);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 28px;
+  margin-top: 26px;
+}
+
+.sidebar {
+  position: sticky;
+  top: 88px;
+  align-self: start;
+  max-height: calc(100vh - 110px);
+  overflow: auto;
+}
+
+.toc-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 18px;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+}
+
+.toc-title {
+  margin: 0 0 10px;
+  color: #fff;
+  font-size: 1rem;
+}
+
+.toc {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.toc a {
+  display: block;
+  padding: 8px 10px;
+  border-radius: 12px;
+  color: var(--muted);
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.toc a:hover {
+  color: var(--text);
+  background: rgba(255,255,255,0.04);
+  text-decoration: none;
+}
+
+.toc .level-1 { font-size: 1rem; }
+.toc .level-2 { padding-left: 18px; font-size: .96rem; }
+.toc .level-3 { padding-left: 30px; font-size: .92rem; }
+
+.markdown-block,
+.code-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 24px 26px;
+  margin-bottom: 22px;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+  scroll-margin-top: 90px;
+}
+
+.markdown-block:first-child { margin-top: 0; }
+
+.markdown-block h1,
+.markdown-block h2,
+.markdown-block h3 {
+  margin-top: 0;
+  color: #fff;
+}
+
+.markdown-block h1 { font-size: 30px; }
+.markdown-block h2 { font-size: 28px; margin-bottom: 14px; }
+.markdown-block h3 { font-size: 24px; margin-bottom: 14px; }
+
+.markdown-block p,
+.markdown-block li,
+.markdown-block blockquote {
+  color: var(--text);
+}
+
+.markdown-block ul,
+.markdown-block ol {
+  padding-left: 22px;
+}
+
+.markdown-block code {
+  background: rgba(255,255,255,0.06);
+  padding: 2px 7px;
+  border-radius: 8px;
+  font-size: .95em;
+}
+
+.markdown-block table,
+.table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 14px;
+  overflow: hidden;
+  border-radius: 14px;
+  display: table;
+}
+
+.markdown-block th,
+.markdown-block td,
+.table-wrap th,
+.table-wrap td {
+  border: 1px solid var(--line);
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.markdown-block th,
+.table-wrap th {
+  background: var(--panel-2);
+  color: #fff;
+}
+
+.markdown-block tr:nth-child(even) td,
+.table-wrap tr:nth-child(even) td {
+  background: rgba(255,255,255,0.02);
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.code-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.cell-no {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255,159,67,0.12);
+  border: 1px solid rgba(255,159,67,0.24);
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.code-details {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255,255,255,0.02);
+  overflow: hidden;
+}
+
+.code-details summary {
+  cursor: pointer;
+  padding: 14px 16px;
+  color: var(--muted);
+  user-select: none;
+  list-style: none;
+}
+
+.code-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.code-details summary::after {
+  content: 'Click to expand';
+  float: right;
+  color: var(--accent-2);
+  font-size: 12px;
+  letter-spacing: .02em;
+}
+
+.code-details[open] summary {
+  border-bottom: 1px solid var(--line);
+}
+
+.code-details[open] summary::after {
+  content: 'Click to collapse';
+}
+
+.code-block {
+  border-radius: 18px;
+  overflow: auto;
+}
+
+.highlight {
+  margin: 0;
+  background: #11161f !important;
+  padding: 18px 20px;
+}
+
+.highlight pre {
+  margin: 0;
+  color: #e6edf3;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.highlight .c,
+.highlight .cm,
+.highlight .c1 {
+  color: #7f8ea3 !important;
+  font-style: italic;
+}
+
+.highlight .k,
+.highlight .kd,
+.highlight .kn,
+.highlight .kr {
+  color: #ff9f43 !important;
+}
+
+.highlight .nf { color: #73c0ff !important; }
+.highlight .n { color: #e6edf3 !important; }
+.highlight .o { color: #ff7b54 !important; }
+.highlight .m,
+.highlight .mi,
+.highlight .mf { color: #a5d6ff !important; }
+
+.highlight .s,
+.highlight .s1,
+.highlight .s2 {
+  color: #b8e994 !important;
+}
+
+.highlight .p,
+.highlight .w {
+  color: #dbe4ee !important;
+}
+
+.outputs {
+  margin-top: 16px;
+}
+
+.outputs .output-label:not(:first-child) {
+  margin-top: 16px;
+}
+
+.output-label {
+  color: var(--good);
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.output-text {
+  margin: 0 0 10px;
+  background: #0b0e13;
+  color: #d6deeb;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  white-space: pre-wrap;
+}
+
+.output-html {
+  margin-top: 8px;
+}
+
+.output-html table {
+  width: 100%;
+}
+
+.img-wrap {
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  overflow: hidden;
+  background: #0b0e13;
+}
+
+.img-wrap img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.figure-caption {
+  padding: 9px 12px;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  background: rgba(255,255,255,0.02);
+}
+
+.markdown-block .MathJax,
+.markdown-block mjx-container {
+  font-size: 1.05em !important;
+}
+
+.markdown-block mjx-container[display="true"] {
+  margin: 1em 0 !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.footer {
+  margin-top: 10px;
+  padding: 28px 20px 34px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 13px;
+  border-top: 1px solid var(--line);
+}
+
+.footer a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.footer a:hover {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+@media (max-width: 920px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+@media (max-width: 720px) {
+  .navbar {
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 14px 12px;
+  }
+
+  .container {
+    padding: 20px 12px 28px;
+  }
+
+  .hero,
+  .markdown-block,
+  .code-card {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  h1 {
+    font-size: 30px;
+  }
+
+  .code-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+</style>
+
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$','$$'], ['\\[','\\]']]
+  },
+  options: {
+    skipHtmlTags: ['script','noscript','style','textarea','pre','code']
+  }
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body>
+<div class="navbar">
+  <a href="../../index.html">Home</a>
+  <a href="../../cv.html">CV</a>
+  <a href="../../education.html">Education</a>
+  <a href="../../projects.html">Projects</a>
+  <a href="../../research.html">Research</a>
+</div>
+
+<div class="container">
+  <header class="hero">
+    <div class="kicker">Replication notebook</div>
+    <h1>Accuracy of the LiNGAM Estimation</h1>
+    <div class="subtitle">Replication notebook for evaluating the accuracy of the LiNGAM-based contemporaneous causal structure estimation used in the event-day network analysis.</div>
+
+    <div class="hero-actions">
+      <a class="hero-button"
+         href="https://github.com/Espanm/heterogeneous-ai-news-m7-hubs-replication/blob/main/notebooks/05_accuracy_of_the_lingam.ipynb"
+         target="_blank"
+         rel="noopener">
+        Download / view the original .ipynb on GitHub
+      </a>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="toc-card">
+        <h2 class="toc-title">Contents</h2>
+        <nav class="toc">
+          <a class="toc level-2" href="#overview">Overview</a>
+<a class="toc level-2" href="#helper-functions-for-the-monte-carlo-simulation">Helper functions for the Monte Carlo simulation</a>
+<a class="toc level-2" href="#baseline-lingam-recovery-experiment-beta-05">Baseline LiNGAM recovery experiment: $\beta = 0.5$</a>
+<a class="toc level-2" href="#reduced-signal-lingam-recovery-experiment-beta-03">Reduced-signal LiNGAM recovery experiment: $\beta = 0.3$</a>
+        </nav>
+      </div>
+    </aside>
+
+    <main class="content">
+      <section class="markdown-block"><h2 id="overview">Overview</h2>
+<p>This notebook reproduces the Monte Carlo exercise used to evaluate how accurately LiNGAM recovers the contemporaneous causal structure in the illustrative structural system. The goal is  to check whether the first identification step of the methodology can recover the correct directed graph from simulated data.</p>
+<p>The simulation is based on two versions of the same four-variable contemporaneous system. In the baseline design, the nonzero contemporaneous coefficients are set to $\beta = 0.5$. In the reduced-signal design, the same edges are retained, but their magnitude is lowered to $\beta = 0.3$. This allows the replication to compare graph recovery when the structural links are stronger versus weaker.</p>
+<p>For each design, the notebook generates repeated samples from the structural system using Student-$t$ shocks with different degrees of freedom. The degrees of freedom control the degree of non-Gaussianity in the shocks, which is important because LiNGAM relies on non-Gaussian independent innovations for causal orientation. After each simulated dataset is generated, the notebook estimates the graph with <code>pcalg::lingam</code>, compares the estimated pairwise relations with the true relations implied by $A_0$, and summarizes recovery accuracy across Monte Carlo replications.</p>
+<p>The main outputs are pair-level recovery tables and graph-level summary tables. These correspond to the LiNGAM recovery results reported in Appendix A of the paper. Because the exercise uses repeated simulations, the notebook may take some time to run. The random seed is fixed to make the replication as reproducible as possible.</p></section>
+<section class="markdown-block"><h2 id="helper-functions-for-the-monte-carlo-simulation">Helper functions for the Monte Carlo simulation</h2>
+<p>This section defines the auxiliary functions used throughout the notebook. The functions convert the true $A_0$ matrix into pairwise causal relations, normalize the adjacency matrix estimated by LiNGAM, compare estimated and true relations, and summarize the Monte Carlo results.</p>
+<p>The functions are written once and then reused for both data-generating processes.</p></section>
+
+<section class="code-card" id="cell-3">
+  <div class="code-head">
+    <span>R code</span>
+    <span class="cell-no">Cell 3</span>
+  </div>
+  <details class="code-details">
+    <summary>Show code</summary>
+    <div class="code-block"><div class="highlight"><pre><span></span><span class="nf">library</span><span class="p">(</span><span class="n">pcalg</span><span class="p">)</span>
+
+<span class="c1"># The function `gen_svar()` used below is expected to be available in the</span>
+<span class="c1"># R session, for example after loading the package/code used in the paper.</span>
+<span class="c1"># `pcalg::lingam()` is used for the actual LiNGAM graph estimation.</span>
+
+<span class="c1"># Safe division helper used for precision, recall, specificity and F1.</span>
+<span class="c1"># If the denominator is zero, the function returns NA instead of producing</span>
+<span class="c1"># Inf or NaN values in the summary tables.</span>
+<span class="n">safe_divide</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nf">ifelse</span><span class="p">(</span><span class="n">y</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="kc">NA_real_</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1"># Convert the true contemporaneous matrix A0 into a pairwise truth table.</span>
+<span class="c1">#</span>
+<span class="c1"># In the structural equation A0 y_t = epsilon_t, a nonzero off-diagonal</span>
+<span class="c1"># element A0[i, j] means that variable j has a contemporaneous effect on</span>
+<span class="c1"># variable i. Therefore, for each unordered pair (x, y), the function checks</span>
+<span class="c1"># whether the true direction is x -&gt; y, y -&gt; x, or no edge.</span>
+<span class="n">make_true_pair_table</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">A0</span><span class="p">,</span><span class="w"> </span><span class="n">tol</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1e-10</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">vars</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">colnames</span><span class="p">(</span><span class="n">A0</span><span class="p">)</span>
+<span class="w">  </span><span class="n">pairs</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">combn</span><span class="p">(</span><span class="n">vars</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">simplify</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+
+<span class="w">  </span><span class="n">out</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">lapply</span><span class="p">(</span><span class="n">pairs</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">pr</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">x</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">pr</span><span class="p">[</span><span class="m">1</span><span class="p">]</span>
+<span class="w">    </span><span class="n">y</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">pr</span><span class="p">[</span><span class="m">2</span><span class="p">]</span>
+<span class="w">    </span><span class="n">ix</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">match</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">vars</span><span class="p">)</span>
+<span class="w">    </span><span class="n">iy</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">match</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="n">vars</span><span class="p">)</span>
+
+<span class="w">    </span><span class="c1"># Directional indicators implied by the off-diagonal entries of A0.</span>
+<span class="w">    </span><span class="n">x_to_y</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">abs</span><span class="p">(</span><span class="n">A0</span><span class="p">[</span><span class="n">iy</span><span class="p">,</span><span class="w"> </span><span class="n">ix</span><span class="p">])</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">tol</span>
+<span class="w">    </span><span class="n">y_to_x</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">abs</span><span class="p">(</span><span class="n">A0</span><span class="p">[</span><span class="n">ix</span><span class="p">,</span><span class="w"> </span><span class="n">iy</span><span class="p">])</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">tol</span>
+
+<span class="w">    </span><span class="c1"># Store the true pairwise relation in a readable string format.</span>
+<span class="w">    </span><span class="n">truth</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="n">x_to_y</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">!</span><span class="n">y_to_x</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nf">paste0</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="s">&quot; -&gt; &quot;</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="n">y_to_x</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">!</span><span class="n">x_to_y</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nf">paste0</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="s">&quot; -&gt; &quot;</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">x_to_y</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">!</span><span class="n">y_to_x</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="s">&quot;no edge&quot;</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nf">stop</span><span class="p">(</span><span class="s">&quot;A0 is not acyclic.&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="nf">data.frame</span><span class="p">(</span>
+<span class="w">      </span><span class="n">pair</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="s">&quot; - &quot;</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">),</span>
+<span class="w">      </span><span class="n">x</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="p">,</span>
+<span class="w">      </span><span class="n">y</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="n">y</span><span class="p">,</span>
+<span class="w">      </span><span class="n">truth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">truth</span><span class="p">,</span>
+<span class="w">      </span><span class="n">stringsAsFactors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="w">  </span><span class="p">})</span>
+
+<span class="w">  </span><span class="nf">do.call</span><span class="p">(</span><span class="n">rbind</span><span class="p">,</span><span class="w"> </span><span class="n">out</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1"># Convert a LiNGAM coefficient matrix into a binary adjacency matrix.</span>
+<span class="c1">#</span>
+<span class="c1"># The resulting matrix only records whether an edge is present or absent.</span>
+<span class="c1"># The diagonal is set to zero because self-loops are not part of the graph</span>
+<span class="c1"># recovery exercise.</span>
+<span class="n">normalize_amat</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">amat</span><span class="p">,</span><span class="w"> </span><span class="n">vars</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">amat</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">as.matrix</span><span class="p">(</span><span class="n">amat</span><span class="p">)</span>
+<span class="w">  </span><span class="n">amat</span><span class="p">[</span><span class="nf">is.na</span><span class="p">(</span><span class="n">amat</span><span class="p">)]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0</span>
+<span class="w">  </span><span class="n">amat</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="p">(</span><span class="n">amat</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="m">0</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="m">1L</span>
+<span class="w">  </span><span class="nf">diag</span><span class="p">(</span><span class="n">amat</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0L</span>
+<span class="w">  </span><span class="nf">colnames</span><span class="p">(</span><span class="n">amat</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">rownames</span><span class="p">(</span><span class="n">amat</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">vars</span>
+<span class="w">  </span><span class="n">amat</span>
+<span class="p">}</span>
+
+<span class="c1"># Extract the estimated relation for one unordered pair of variables.</span>
+<span class="c1">#</span>
+<span class="c1"># The convention is the same as above: Adj[i, j] = 1 means j -&gt; i.</span>
+<span class="c1"># The function returns x -&gt; y, y -&gt; x, or no edge.</span>
+<span class="n">get_estimated_relation</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">Adj</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">vars</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">colnames</span><span class="p">(</span><span class="n">Adj</span><span class="p">)</span>
+<span class="w">  </span><span class="n">ix</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">match</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">vars</span><span class="p">)</span>
+<span class="w">  </span><span class="n">iy</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">match</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="n">vars</span><span class="p">)</span>
+
+<span class="w">  </span><span class="n">x_to_y</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">Adj</span><span class="p">[</span><span class="n">iy</span><span class="p">,</span><span class="w"> </span><span class="n">ix</span><span class="p">]</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">1L</span>
+<span class="w">  </span><span class="n">y_to_x</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">Adj</span><span class="p">[</span><span class="n">ix</span><span class="p">,</span><span class="w"> </span><span class="n">iy</span><span class="p">]</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">1L</span>
+
+<span class="w">  </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="n">x_to_y</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">!</span><span class="n">y_to_x</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nf">paste0</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="s">&quot; -&gt; &quot;</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="n">y_to_x</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">!</span><span class="n">x_to_y</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nf">paste0</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="s">&quot; -&gt; &quot;</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">x_to_y</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">!</span><span class="n">y_to_x</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="s">&quot;no edge&quot;</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nf">stop</span><span class="p">(</span><span class="s">&quot;Estimated adjacency contains a 2-cycle.&quot;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1"># Pairwise structural Hamming distance.</span>
+<span class="c1">#</span>
+<span class="c1"># In this simplified pairwise setting, SHD is the number of unordered pairs</span>
+<span class="c1"># for which the estimated relation differs from the true relation.</span>
+<span class="n">compute_pairwise_shd</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">est_rel</span><span class="p">,</span><span class="w"> </span><span class="n">true_rel</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nf">sum</span><span class="p">(</span><span class="n">est_rel</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">true_rel</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1"># Summarize directional recovery for pairs where a true edge exists.</span>
+<span class="c1">#</span>
+<span class="c1"># The table separates three cases:</span>
+<span class="c1">#   1. the correct direction was found;</span>
+<span class="c1">#   2. the opposite direction was estimated;</span>
+<span class="c1">#   3. the edge was missed.</span>
+<span class="n">summarize_orientation</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">pair_counts</span><span class="p">,</span><span class="w"> </span><span class="n">df</span><span class="p">,</span><span class="w"> </span><span class="n">reps</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">edge_rows</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">truth</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="s">&quot;no edge&quot;</span>
+
+<span class="w">  </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nf">any</span><span class="p">(</span><span class="n">edge_rows</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kr">return</span><span class="p">(</span><span class="nf">data.frame</span><span class="p">(</span>
+<span class="w">      </span><span class="n">df</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">df</span><span class="p">,</span>
+<span class="w">      </span><span class="n">reps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">reps</span><span class="p">,</span>
+<span class="w">      </span><span class="n">n_true_edges</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0L</span><span class="p">,</span>
+<span class="w">      </span><span class="n">correct_dir_rate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">NA_real_</span><span class="p">,</span>
+<span class="w">      </span><span class="n">reversed_rate</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="kc">NA_real_</span><span class="p">,</span>
+<span class="w">      </span><span class="n">missing_rate</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="kc">NA_real_</span><span class="p">,</span>
+<span class="w">      </span><span class="n">stringsAsFactors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span>
+<span class="w">    </span><span class="p">))</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="n">correct_dir</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0L</span>
+<span class="w">  </span><span class="n">reversed</span><span class="w">    </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0L</span>
+<span class="w">  </span><span class="n">missing</span><span class="w">     </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0L</span>
+
+<span class="w">  </span><span class="n">idx</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">which</span><span class="p">(</span><span class="n">edge_rows</span><span class="p">)</span>
+
+<span class="w">  </span><span class="kr">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="n">idx</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">truth_xy</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="n">pair_counts</span><span class="o">$</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="w"> </span><span class="s">&quot; -&gt; &quot;</span><span class="p">,</span><span class="w"> </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+<span class="w">    </span><span class="n">truth_yx</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="n">pair_counts</span><span class="o">$</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="w"> </span><span class="s">&quot; -&gt; &quot;</span><span class="p">,</span><span class="w"> </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+<span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="n">pair_counts</span><span class="o">$</span><span class="n">truth</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">truth_xy</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">correct_dir</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">correct_dir</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">x_to_y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+<span class="w">      </span><span class="n">reversed</span><span class="w">    </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">reversed</span><span class="w">    </span><span class="o">+</span><span class="w"> </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">y_to_x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="n">pair_counts</span><span class="o">$</span><span class="n">truth</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">truth_yx</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">correct_dir</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">correct_dir</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">y_to_x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+<span class="w">      </span><span class="n">reversed</span><span class="w">    </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">reversed</span><span class="w">    </span><span class="o">+</span><span class="w"> </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">x_to_y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">missing</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">missing</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">none</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="n">total_cases</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">reps</span>
+
+<span class="w">  </span><span class="nf">data.frame</span><span class="p">(</span>
+<span class="w">    </span><span class="n">df</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">df</span><span class="p">,</span>
+<span class="w">    </span><span class="n">reps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">reps</span><span class="p">,</span>
+<span class="w">    </span><span class="n">n_true_edges</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">idx</span><span class="p">),</span>
+<span class="w">    </span><span class="n">correct_dir_rate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">correct_dir</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">total_cases</span><span class="p">,</span>
+<span class="w">    </span><span class="n">reversed_rate</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">reversed</span><span class="w">    </span><span class="o">/</span><span class="w"> </span><span class="n">total_cases</span><span class="p">,</span>
+<span class="w">    </span><span class="n">missing_rate</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="n">missing</span><span class="w">     </span><span class="o">/</span><span class="w"> </span><span class="n">total_cases</span><span class="p">,</span>
+<span class="w">    </span><span class="n">stringsAsFactors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span>
+<span class="w">  </span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1"># Summarize binary edge detection, ignoring the direction of the edge.</span>
+<span class="c1">#</span>
+<span class="c1"># This distinguishes true positives, false negatives, false positives and</span>
+<span class="c1"># true negatives at the pair level. These counts are then converted into</span>
+<span class="c1"># standard classification metrics.</span>
+<span class="n">summarize_binary_detection</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">pair_counts</span><span class="p">,</span><span class="w"> </span><span class="n">df</span><span class="p">,</span><span class="w"> </span><span class="n">reps</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">true_has_edge</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">truth</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="s">&quot;no edge&quot;</span>
+<span class="w">  </span><span class="n">est_has_edge_count</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">x_to_y</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">y_to_x</span>
+
+<span class="w">  </span><span class="n">TP</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">est_has_edge_count</span><span class="p">[</span><span class="w"> </span><span class="n">true_has_edge</span><span class="p">])</span>
+<span class="w">  </span><span class="n">FN</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">pair_counts</span><span class="o">$</span><span class="n">none</span><span class="p">[</span><span class="w">   </span><span class="n">true_has_edge</span><span class="p">])</span>
+<span class="w">  </span><span class="n">FP</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">est_has_edge_count</span><span class="p">[</span><span class="o">!</span><span class="n">true_has_edge</span><span class="p">])</span>
+<span class="w">  </span><span class="n">TN</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">pair_counts</span><span class="o">$</span><span class="n">none</span><span class="p">[</span><span class="w">   </span><span class="o">!</span><span class="n">true_has_edge</span><span class="p">])</span>
+
+<span class="w">  </span><span class="n">precision</span><span class="w">   </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">safe_divide</span><span class="p">(</span><span class="n">TP</span><span class="p">,</span><span class="w"> </span><span class="n">TP</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">FP</span><span class="p">)</span>
+<span class="w">  </span><span class="n">recall</span><span class="w">      </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">safe_divide</span><span class="p">(</span><span class="n">TP</span><span class="p">,</span><span class="w"> </span><span class="n">TP</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">FN</span><span class="p">)</span>
+<span class="w">  </span><span class="n">specificity</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">safe_divide</span><span class="p">(</span><span class="n">TN</span><span class="p">,</span><span class="w"> </span><span class="n">TN</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">FP</span><span class="p">)</span>
+<span class="w">  </span><span class="n">f1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">precision</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nf">is.na</span><span class="p">(</span><span class="n">recall</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="p">(</span><span class="n">precision</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">recall</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kc">NA_real_</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="m">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">precision</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">recall</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="n">precision</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">recall</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="nf">data.frame</span><span class="p">(</span>
+<span class="w">    </span><span class="n">df</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">df</span><span class="p">,</span>
+<span class="w">    </span><span class="n">reps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">reps</span><span class="p">,</span>
+<span class="w">    </span><span class="n">TP</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TP</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FN</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">FN</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FP</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">FP</span><span class="p">,</span>
+<span class="w">    </span><span class="n">TN</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TN</span><span class="p">,</span>
+<span class="w">    </span><span class="n">precision</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">precision</span><span class="p">,</span>
+<span class="w">    </span><span class="n">recall</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">recall</span><span class="p">,</span>
+<span class="w">    </span><span class="n">specificity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">specificity</span><span class="p">,</span>
+<span class="w">    </span><span class="n">F1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">f1</span><span class="p">,</span>
+<span class="w">    </span><span class="n">stringsAsFactors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span>
+<span class="w">  </span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1"># Summarize graph-level recovery across Monte Carlo replications.</span>
+<span class="c1">#</span>
+<span class="c1"># `pair_accuracy` is the share of correctly classified pairwise relations.</span>
+<span class="c1"># `mean_SHD` and `median_SHD` summarize the number of pairwise mistakes.</span>
+<span class="c1"># `exact_recovery_rate` is the share of replications where the whole graph</span>
+<span class="c1"># is recovered exactly.</span>
+<span class="n">summarize_graph_recovery</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">pair_counts</span><span class="p">,</span><span class="w"> </span><span class="n">shd_vec</span><span class="p">,</span><span class="w"> </span><span class="n">df</span><span class="p">,</span><span class="w"> </span><span class="n">reps</span><span class="p">,</span><span class="w"> </span><span class="n">failed_runs</span><span class="p">,</span><span class="w"> </span><span class="n">attempts</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">pair_accuracy</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">pair_counts</span><span class="o">$</span><span class="n">correct</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="nf">nrow</span><span class="p">(</span><span class="n">pair_counts</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">reps</span><span class="p">)</span>
+<span class="w">  </span><span class="n">exact_recovery_count</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">shd_vec</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">0L</span><span class="p">)</span>
+
+<span class="w">  </span><span class="nf">data.frame</span><span class="p">(</span>
+<span class="w">    </span><span class="n">df</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">df</span><span class="p">,</span>
+<span class="w">    </span><span class="n">reps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">reps</span><span class="p">,</span>
+<span class="w">    </span><span class="n">attempts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">attempts</span><span class="p">,</span>
+<span class="w">    </span><span class="n">failed_runs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">failed_runs</span><span class="p">,</span>
+<span class="w">    </span><span class="n">pair_accuracy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pair_accuracy</span><span class="p">,</span>
+<span class="w">    </span><span class="n">mean_SHD</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="n">shd_vec</span><span class="p">),</span>
+<span class="w">    </span><span class="n">median_SHD</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">stats</span><span class="o">::</span><span class="nf">median</span><span class="p">(</span><span class="n">shd_vec</span><span class="p">),</span>
+<span class="w">    </span><span class="n">sd_SHD</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">stats</span><span class="o">::</span><span class="nf">sd</span><span class="p">(</span><span class="n">shd_vec</span><span class="p">),</span>
+<span class="w">    </span><span class="n">exact_recovery_count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">exact_recovery_count</span><span class="p">,</span>
+<span class="w">    </span><span class="n">exact_recovery_rate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">exact_recovery_count</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">reps</span><span class="p">,</span>
+<span class="w">    </span><span class="n">stringsAsFactors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span>
+<span class="w">  </span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1"># Run the Monte Carlo simulation for one value of the degrees of freedom.</span>
+<span class="c1">#</span>
+<span class="c1"># For each successful replication, the function:</span>
+<span class="c1">#   1. generates a sample from the structural system;</span>
+<span class="c1">#   2. estimates the contemporaneous graph with LiNGAM;</span>
+<span class="c1">#   3. compares all pairwise estimated relations with the true relations;</span>
+<span class="c1">#   4. stores pair-level and graph-level recovery statistics.</span>
+<span class="n">run_mc_single_df</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">A0</span><span class="p">,</span>
+<span class="w">                             </span><span class="n">df</span><span class="p">,</span>
+<span class="w">                             </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">400</span><span class="p">,</span>
+<span class="w">                             </span><span class="n">burnin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">100</span><span class="p">,</span>
+<span class="w">                             </span><span class="n">reps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1000</span><span class="p">,</span>
+<span class="w">                             </span><span class="n">standardize_for_dag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">,</span>
+<span class="w">                             </span><span class="n">tol</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1e-8</span><span class="p">,</span>
+<span class="w">                             </span><span class="n">max_attempt_factor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">5</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">  </span><span class="n">vars</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">colnames</span><span class="p">(</span><span class="n">A0</span><span class="p">)</span>
+<span class="w">  </span><span class="n">true_pairs</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">make_true_pair_table</span><span class="p">(</span><span class="n">A0</span><span class="p">,</span><span class="w"> </span><span class="n">tol</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tol</span><span class="p">)</span>
+
+<span class="w">  </span><span class="c1"># Initialize the pair-level counters. Each row corresponds to one</span>
+<span class="w">  </span><span class="c1"># unordered pair of variables.</span>
+<span class="w">  </span><span class="n">pair_counts</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">true_pairs</span>
+<span class="w">  </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">x_to_y</span><span class="w">  </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0L</span>
+<span class="w">  </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">y_to_x</span><span class="w">  </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0L</span>
+<span class="w">  </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">none</span><span class="w">    </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0L</span>
+<span class="w">  </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">correct</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0L</span>
+
+<span class="w">  </span><span class="n">shd_vec</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">integer</span><span class="p">(</span><span class="n">reps</span><span class="p">)</span>
+
+<span class="w">  </span><span class="n">success</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0L</span>
+<span class="w">  </span><span class="n">attempts</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0L</span>
+<span class="w">  </span><span class="n">failed_runs</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0L</span>
+<span class="w">  </span><span class="n">max_attempts</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">reps</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">max_attempt_factor</span>
+
+<span class="w">  </span><span class="kr">while</span><span class="w"> </span><span class="p">(</span><span class="n">success</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">reps</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">attempts</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">attempts</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1L</span>
+
+<span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="n">attempts</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">max_attempts</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nf">stop</span><span class="p">(</span><span class="s">&quot;Too many failed simulation/estimation attempts.&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1"># Generate one Monte Carlo sample. The model has no lagged VAR part in</span>
+<span class="w">    </span><span class="c1"># this exercise, so `list_A = list()` leaves only the contemporaneous</span>
+<span class="w">    </span><span class="c1"># structure given by A0.</span>
+<span class="w">    </span><span class="n">X</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">tryCatch</span><span class="p">(</span>
+<span class="w">      </span><span class="nf">gen_svar</span><span class="p">(</span>
+<span class="w">        </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n</span><span class="p">,</span>
+<span class="w">        </span><span class="n">A0</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">A0</span><span class="p">,</span>
+<span class="w">        </span><span class="n">list_A</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">list</span><span class="p">(),</span>
+<span class="w">        </span><span class="n">df</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">df</span><span class="p">,</span>
+<span class="w">        </span><span class="n">burnin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">burnin</span>
+<span class="w">      </span><span class="p">),</span>
+<span class="w">      </span><span class="n">error</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="kc">NULL</span>
+<span class="w">    </span><span class="p">)</span>
+
+<span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">is.null</span><span class="p">(</span><span class="n">X</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">failed_runs</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">failed_runs</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1L</span>
+<span class="w">      </span><span class="kr">next</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">X</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">as.data.frame</span><span class="p">(</span><span class="nf">as.matrix</span><span class="p">(</span><span class="n">X</span><span class="p">))</span>
+<span class="w">    </span><span class="nf">colnames</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">vars</span>
+
+<span class="w">    </span><span class="c1"># Standardization is optional. The default keeps the generated data on</span>
+<span class="w">    </span><span class="c1"># its original scale, matching the reported replication setting.</span>
+<span class="w">    </span><span class="n">X_dag</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="n">standardize_for_dag</span><span class="p">)</span><span class="w"> </span><span class="nf">scale</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="nf">as.matrix</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+<span class="w">    </span><span class="c1"># `pcalg::lingam()` uses random components. To make each LiNGAM call</span>
+<span class="w">    </span><span class="c1"># internally reproducible without disturbing the outer Monte Carlo seed,</span>
+<span class="w">    </span><span class="c1"># the current random state is saved and restored after estimation.</span>
+<span class="w">    </span><span class="n">old_seed</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">exists</span><span class="p">(</span><span class="s">&quot;.Random.seed&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">envir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">.GlobalEnv</span><span class="p">,</span><span class="w"> </span><span class="n">inherits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nf">get</span><span class="p">(</span><span class="s">&quot;.Random.seed&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">envir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">.GlobalEnv</span><span class="p">,</span><span class="w"> </span><span class="n">inherits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="kc">NULL</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="nf">set.seed</span><span class="p">(</span><span class="m">1119</span><span class="p">)</span>
+<span class="w">    </span><span class="n">fit_lingam</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">tryCatch</span><span class="p">(</span>
+<span class="w">      </span><span class="n">pcalg</span><span class="o">::</span><span class="nf">lingam</span><span class="p">(</span><span class="n">X_dag</span><span class="p">,</span><span class="w"> </span><span class="n">verbose</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">),</span>
+<span class="w">      </span><span class="n">error</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="kc">NULL</span>
+<span class="w">    </span><span class="p">)</span>
+
+<span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">is.null</span><span class="p">(</span><span class="n">old_seed</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nf">rm</span><span class="p">(</span><span class="s">&quot;.Random.seed&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">envir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">.GlobalEnv</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nf">assign</span><span class="p">(</span><span class="s">&quot;.Random.seed&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">old_seed</span><span class="p">,</span><span class="w"> </span><span class="n">envir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">.GlobalEnv</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">is.null</span><span class="p">(</span><span class="n">fit_lingam</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">failed_runs</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">failed_runs</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1L</span>
+<span class="w">      </span><span class="kr">next</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1"># Prefer the pruned LiNGAM coefficient matrix when available.</span>
+<span class="w">    </span><span class="n">Bhat</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nf">is.null</span><span class="p">(</span><span class="n">fit_lingam</span><span class="o">$</span><span class="n">Bpruned</span><span class="p">))</span><span class="w"> </span><span class="n">fit_lingam</span><span class="o">$</span><span class="n">Bpruned</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="n">fit_lingam</span><span class="o">$</span><span class="n">B</span>
+
+<span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">is.null</span><span class="p">(</span><span class="n">Bhat</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">failed_runs</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">failed_runs</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1L</span>
+<span class="w">      </span><span class="kr">next</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">Adj</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">normalize_amat</span><span class="p">(</span><span class="n">Bhat</span><span class="p">,</span><span class="w"> </span><span class="n">vars</span><span class="p">)</span>
+
+<span class="w">    </span><span class="c1"># Translate the estimated adjacency matrix into pairwise string labels</span>
+<span class="w">    </span><span class="c1"># so that the estimates can be compared directly to the truth table.</span>
+<span class="w">    </span><span class="n">est_rel</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">mapply</span><span class="p">(</span>
+<span class="w">      </span><span class="n">FUN</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">)</span><span class="w"> </span><span class="nf">get_estimated_relation</span><span class="p">(</span><span class="n">Adj</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">),</span>
+<span class="w">      </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">true_pairs</span><span class="o">$</span><span class="n">x</span><span class="p">,</span>
+<span class="w">      </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">true_pairs</span><span class="o">$</span><span class="n">y</span><span class="p">,</span>
+<span class="w">      </span><span class="n">USE.NAMES</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span>
+<span class="w">    </span><span class="p">)</span>
+
+<span class="w">    </span><span class="c1"># Update the Monte Carlo counters for each pair.</span>
+<span class="w">    </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">x_to_y</span><span class="w">  </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">x_to_y</span><span class="w">  </span><span class="o">+</span><span class="w"> </span><span class="nf">as.integer</span><span class="p">(</span><span class="n">est_rel</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="n">pair_counts</span><span class="o">$</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="s">&quot; -&gt; &quot;</span><span class="p">,</span><span class="w"> </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">y</span><span class="p">))</span>
+<span class="w">    </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">y_to_x</span><span class="w">  </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">y_to_x</span><span class="w">  </span><span class="o">+</span><span class="w"> </span><span class="nf">as.integer</span><span class="p">(</span><span class="n">est_rel</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="n">pair_counts</span><span class="o">$</span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="s">&quot; -&gt; &quot;</span><span class="p">,</span><span class="w"> </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">x</span><span class="p">))</span>
+<span class="w">    </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">none</span><span class="w">    </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">none</span><span class="w">    </span><span class="o">+</span><span class="w"> </span><span class="nf">as.integer</span><span class="p">(</span><span class="n">est_rel</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;no edge&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">correct</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">correct</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nf">as.integer</span><span class="p">(</span><span class="n">est_rel</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">truth</span><span class="p">)</span>
+
+<span class="w">    </span><span class="n">success</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">success</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1L</span>
+<span class="w">    </span><span class="n">shd_vec</span><span class="p">[</span><span class="n">success</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">compute_pairwise_shd</span><span class="p">(</span><span class="n">est_rel</span><span class="p">,</span><span class="w"> </span><span class="n">true_pairs</span><span class="o">$</span><span class="n">truth</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="c1"># Convert raw counts into recovery rates.</span>
+<span class="w">  </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">x_to_y_rate</span><span class="w">  </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">x_to_y</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">reps</span>
+<span class="w">  </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">y_to_x_rate</span><span class="w">  </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">y_to_x</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">reps</span>
+<span class="w">  </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">none_rate</span><span class="w">    </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">none</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">reps</span>
+<span class="w">  </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">correct_rate</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">pair_counts</span><span class="o">$</span><span class="n">correct</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">reps</span>
+
+<span class="w">  </span><span class="n">orientation_summary</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">summarize_orientation</span><span class="p">(</span><span class="n">pair_counts</span><span class="p">,</span><span class="w"> </span><span class="n">df</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">df</span><span class="p">,</span><span class="w"> </span><span class="n">reps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">reps</span><span class="p">)</span>
+<span class="w">  </span><span class="n">binary_summary</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">summarize_binary_detection</span><span class="p">(</span><span class="n">pair_counts</span><span class="p">,</span><span class="w"> </span><span class="n">df</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">df</span><span class="p">,</span><span class="w"> </span><span class="n">reps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">reps</span><span class="p">)</span>
+<span class="w">  </span><span class="n">graph_summary</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">summarize_graph_recovery</span><span class="p">(</span>
+<span class="w">    </span><span class="n">pair_counts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pair_counts</span><span class="p">,</span>
+<span class="w">    </span><span class="n">shd_vec</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">shd_vec</span><span class="p">,</span>
+<span class="w">    </span><span class="n">df</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">df</span><span class="p">,</span>
+<span class="w">    </span><span class="n">reps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">reps</span><span class="p">,</span>
+<span class="w">    </span><span class="n">failed_runs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">failed_runs</span><span class="p">,</span>
+<span class="w">    </span><span class="n">attempts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">attempts</span>
+<span class="w">  </span><span class="p">)</span>
+
+<span class="w">  </span><span class="nf">list</span><span class="p">(</span>
+<span class="w">    </span><span class="n">pair_counts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pair_counts</span><span class="p">,</span>
+<span class="w">    </span><span class="n">orientation_summary</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">orientation_summary</span><span class="p">,</span>
+<span class="w">    </span><span class="n">binary_summary</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">binary_summary</span><span class="p">,</span>
+<span class="w">    </span><span class="n">graph_summary</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">graph_summary</span><span class="p">,</span>
+<span class="w">    </span><span class="n">shd_vector</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">shd_vec</span>
+<span class="w">  </span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1"># Combine the pair-level results from the different degrees of freedom into</span>
+<span class="c1"># a single wide table. This is the format used in the appendix tables.</span>
+<span class="n">make_pair_wide_table</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">res_list</span><span class="p">,</span><span class="w"> </span><span class="n">dfs</span><span class="p">,</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;counts&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;rates&quot;</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">type</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">match.arg</span><span class="p">(</span><span class="n">type</span><span class="p">)</span>
+
+<span class="w">  </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="n">type</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;counts&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">cols_keep</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;x_to_y&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;y_to_x&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;none&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;correct&quot;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">cols_keep</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;x_to_y_rate&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;y_to_x_rate&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;none_rate&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;correct_rate&quot;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="n">tabs</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">lapply</span><span class="p">(</span><span class="nf">seq_along</span><span class="p">(</span><span class="n">dfs</span><span class="p">),</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">d</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">dfs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+<span class="w">    </span><span class="n">tmp</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">res_list</span><span class="p">[[</span><span class="n">i</span><span class="p">]]</span><span class="o">$</span><span class="n">pair_counts</span><span class="p">[,</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;pair&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;x&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;y&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;truth&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">cols_keep</span><span class="p">)]</span>
+<span class="w">    </span><span class="nf">names</span><span class="p">(</span><span class="n">tmp</span><span class="p">)[</span><span class="o">-</span><span class="p">(</span><span class="m">1</span><span class="o">:</span><span class="m">4</span><span class="p">)]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="s">&quot;df&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">d</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;_&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">cols_keep</span><span class="p">)</span>
+<span class="w">    </span><span class="n">tmp</span>
+<span class="w">  </span><span class="p">})</span>
+
+<span class="w">  </span><span class="n">out</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">Reduce</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nf">merge</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">by</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;pair&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;x&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;y&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;truth&quot;</span><span class="p">),</span><span class="w"> </span><span class="n">all</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">)</span>
+<span class="w">  </span><span class="p">},</span><span class="w"> </span><span class="n">tabs</span><span class="p">)</span>
+
+<span class="w">  </span><span class="n">out</span><span class="p">[</span><span class="nf">order</span><span class="p">(</span><span class="n">out</span><span class="o">$</span><span class="n">pair</span><span class="p">),</span><span class="w"> </span><span class="p">]</span>
+<span class="p">}</span>
+
+<span class="c1"># Main wrapper used in the notebook.</span>
+<span class="c1">#</span>
+<span class="c1"># It runs the Monte Carlo exercise for all requested degrees of freedom and</span>
+<span class="c1"># returns both pair-level tables and aggregate graph recovery summaries.</span>
+<span class="n">run_lingam_mc</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">A0</span><span class="p">,</span>
+<span class="w">                          </span><span class="n">dfs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">3</span><span class="p">,</span><span class="w"> </span><span class="m">6</span><span class="p">,</span><span class="w"> </span><span class="m">9</span><span class="p">),</span>
+<span class="w">                          </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">400</span><span class="p">,</span>
+<span class="w">                          </span><span class="n">burnin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">100</span><span class="p">,</span>
+<span class="w">                          </span><span class="n">reps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1000</span><span class="p">,</span>
+<span class="w">                          </span><span class="n">standardize_for_dag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">,</span>
+<span class="w">                          </span><span class="n">tol</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1e-8</span><span class="p">,</span>
+<span class="w">                          </span><span class="n">seed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">123</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">  </span><span class="nf">set.seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+
+<span class="w">  </span><span class="n">res_list</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">lapply</span><span class="p">(</span><span class="n">dfs</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">d</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nf">run_mc_single_df</span><span class="p">(</span>
+<span class="w">      </span><span class="n">A0</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">A0</span><span class="p">,</span>
+<span class="w">      </span><span class="n">df</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">d</span><span class="p">,</span>
+<span class="w">      </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n</span><span class="p">,</span>
+<span class="w">      </span><span class="n">burnin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">burnin</span><span class="p">,</span>
+<span class="w">      </span><span class="n">reps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">reps</span><span class="p">,</span>
+<span class="w">      </span><span class="n">standardize_for_dag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">standardize_for_dag</span><span class="p">,</span>
+<span class="w">      </span><span class="n">tol</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tol</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="w">  </span><span class="p">})</span>
+
+<span class="w">  </span><span class="n">pair_table_counts</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">make_pair_wide_table</span><span class="p">(</span><span class="n">res_list</span><span class="p">,</span><span class="w"> </span><span class="n">dfs</span><span class="p">,</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;counts&quot;</span><span class="p">)</span>
+<span class="w">  </span><span class="n">pair_table_rates</span><span class="w">  </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">make_pair_wide_table</span><span class="p">(</span><span class="n">res_list</span><span class="p">,</span><span class="w"> </span><span class="n">dfs</span><span class="p">,</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;rates&quot;</span><span class="p">)</span>
+
+<span class="w">  </span><span class="n">orientation_table</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">do.call</span><span class="p">(</span>
+<span class="w">    </span><span class="n">rbind</span><span class="p">,</span>
+<span class="w">    </span><span class="nf">lapply</span><span class="p">(</span><span class="n">res_list</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="n">x</span><span class="o">$</span><span class="n">orientation_summary</span><span class="p">)</span>
+<span class="w">  </span><span class="p">)</span>
+<span class="w">  </span><span class="n">orientation_table</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">orientation_table</span><span class="p">[</span><span class="nf">order</span><span class="p">(</span><span class="n">orientation_table</span><span class="o">$</span><span class="n">df</span><span class="p">),</span><span class="w"> </span><span class="p">]</span>
+
+<span class="w">  </span><span class="n">binary_detection_table</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">do.call</span><span class="p">(</span>
+<span class="w">    </span><span class="n">rbind</span><span class="p">,</span>
+<span class="w">    </span><span class="nf">lapply</span><span class="p">(</span><span class="n">res_list</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="n">x</span><span class="o">$</span><span class="n">binary_summary</span><span class="p">)</span>
+<span class="w">  </span><span class="p">)</span>
+<span class="w">  </span><span class="n">binary_detection_table</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">binary_detection_table</span><span class="p">[</span><span class="nf">order</span><span class="p">(</span><span class="n">binary_detection_table</span><span class="o">$</span><span class="n">df</span><span class="p">),</span><span class="w"> </span><span class="p">]</span>
+
+<span class="w">  </span><span class="n">graph_recovery_table</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">do.call</span><span class="p">(</span>
+<span class="w">    </span><span class="n">rbind</span><span class="p">,</span>
+<span class="w">    </span><span class="nf">lapply</span><span class="p">(</span><span class="n">res_list</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="n">x</span><span class="o">$</span><span class="n">graph_summary</span><span class="p">)</span>
+<span class="w">  </span><span class="p">)</span>
+<span class="w">  </span><span class="n">graph_recovery_table</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">graph_recovery_table</span><span class="p">[</span><span class="nf">order</span><span class="p">(</span><span class="n">graph_recovery_table</span><span class="o">$</span><span class="n">df</span><span class="p">),</span><span class="w"> </span><span class="p">]</span>
+
+<span class="w">  </span><span class="nf">list</span><span class="p">(</span>
+<span class="w">    </span><span class="n">pair_table_counts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pair_table_counts</span><span class="p">,</span>
+<span class="w">    </span><span class="n">pair_table_rates</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pair_table_rates</span><span class="p">,</span>
+<span class="w">    </span><span class="n">orientation_table</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">orientation_table</span><span class="p">,</span>
+<span class="w">    </span><span class="n">binary_detection_table</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">binary_detection_table</span><span class="p">,</span>
+<span class="w">    </span><span class="n">graph_recovery_table</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">graph_recovery_table</span><span class="p">,</span>
+<span class="w">    </span><span class="n">raw_results</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">res_list</span>
+<span class="w">  </span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+  </details>
+  
+</section>
+
+<section class="markdown-block"><h2 id="baseline-lingam-recovery-experiment-beta-05">Baseline LiNGAM recovery experiment: $\beta = 0.5$</h2>
+<p>This section runs the Monte Carlo recovery exercise for the baseline data-generating process. The nonzero contemporaneous coefficients in $A_0$ are set to $-0.5$, which corresponds to the stronger-link version of the illustrative system.</p>
+<p>The simulation is run for Student-$t$ shocks with 3, 6 and 9 degrees of freedom. Lower degrees of freedom imply stronger non-Gaussianity, which should generally make LiNGAM orientation easier. The resulting pair-level counts and graph-level recovery statistics correspond to Table A.4 in Appendix A.</p></section>
+
+<section class="code-card" id="cell-5">
+  <div class="code-head">
+    <span>R code</span>
+    <span class="cell-no">Cell 5</span>
+  </div>
+  <details class="code-details">
+    <summary>Show code</summary>
+    <div class="code-block"><div class="highlight"><pre><span></span><span class="c1"># Baseline contemporaneous structural matrix.</span>
+<span class="c1">#</span>
+<span class="c1"># The diagonal elements are fixed at one. The nonzero off-diagonal</span>
+<span class="c1"># elements define the true contemporaneous causal graph:</span>
+<span class="c1">#   Y1 -&gt; Y3, Y2 -&gt; Y3, Y1 -&gt; Y4, and Y3 -&gt; Y4.</span>
+<span class="n">A0</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">matrix</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span>
+<span class="w">  </span><span class="m">1.0</span><span class="p">,</span><span class="w">  </span><span class="m">0.0</span><span class="p">,</span><span class="w">  </span><span class="m">0.0</span><span class="p">,</span><span class="w">  </span><span class="m">0.0</span><span class="p">,</span>
+<span class="w">  </span><span class="m">0.0</span><span class="p">,</span><span class="w">  </span><span class="m">1.0</span><span class="p">,</span><span class="w">  </span><span class="m">0.0</span><span class="p">,</span><span class="w">  </span><span class="m">0.0</span><span class="p">,</span>
+<span class="w"> </span><span class="m">-0.5</span><span class="p">,</span><span class="w"> </span><span class="m">-0.5</span><span class="p">,</span><span class="w">  </span><span class="m">1.0</span><span class="p">,</span><span class="w">  </span><span class="m">0.0</span><span class="p">,</span>
+<span class="w"> </span><span class="m">-0.5</span><span class="p">,</span><span class="w">  </span><span class="m">0.0</span><span class="p">,</span><span class="w"> </span><span class="m">-0.5</span><span class="p">,</span><span class="w">  </span><span class="m">1.0</span>
+<span class="p">),</span><span class="w"> </span><span class="n">nrow</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">4</span><span class="p">,</span><span class="w"> </span><span class="n">byrow</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">)</span>
+
+<span class="c1"># Assign variable names used in the pairwise recovery tables.</span>
+<span class="nf">colnames</span><span class="p">(</span><span class="n">A0</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">rownames</span><span class="p">(</span><span class="n">A0</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="s">&quot;Y&quot;</span><span class="p">,</span><span class="w"> </span><span class="nf">seq_len</span><span class="p">(</span><span class="nf">nrow</span><span class="p">(</span><span class="n">A0</span><span class="p">)))</span>
+
+<span class="c1"># Run the Monte Carlo experiment.</span>
+<span class="c1">#</span>
+<span class="c1"># `dfs = c(3, 6, 9)` compares different levels of non-Gaussianity.</span>
+<span class="c1"># `n = 400` is the sample size used in each replication.</span>
+<span class="c1"># `reps = 1000` is the number of successful Monte Carlo replications.</span>
+<span class="n">mc_out</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">run_lingam_mc</span><span class="p">(</span>
+<span class="w">  </span><span class="n">A0</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">A0</span><span class="p">,</span>
+<span class="w">  </span><span class="n">dfs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">3</span><span class="p">,</span><span class="w"> </span><span class="m">6</span><span class="p">,</span><span class="w"> </span><span class="m">9</span><span class="p">),</span>
+<span class="w">  </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">400</span><span class="p">,</span>
+<span class="w">  </span><span class="n">burnin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">100</span><span class="p">,</span>
+<span class="w">  </span><span class="n">reps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1000</span><span class="p">,</span>
+<span class="w">  </span><span class="n">tol</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1e-8</span><span class="p">,</span>
+<span class="w">  </span><span class="n">seed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">123</span>
+<span class="p">)</span>
+
+<span class="c1"># Pair-level recovery counts by degrees of freedom.</span>
+<span class="n">mc_out</span><span class="o">$</span><span class="n">pair_table_counts</span>
+
+<span class="c1"># Aggregate graph recovery statistics.</span>
+<span class="n">mc_out</span><span class="o">$</span><span class="n">graph_recovery_table</span>
+</pre></div>
+</div>
+  </details>
+  <div class="outputs"><div class="output-label">Output 1</div><div class="output-html table-wrap"><table class="dataframe">
+<caption>A data.frame: 6 × 16</caption>
+<thead>
+	<tr><th></th><th scope=col>pair</th><th scope=col>x</th><th scope=col>y</th><th scope=col>truth</th><th scope=col>df3_x_to_y</th><th scope=col>df3_y_to_x</th><th scope=col>df3_none</th><th scope=col>df3_correct</th><th scope=col>df6_x_to_y</th><th scope=col>df6_y_to_x</th><th scope=col>df6_none</th><th scope=col>df6_correct</th><th scope=col>df9_x_to_y</th><th scope=col>df9_y_to_x</th><th scope=col>df9_none</th><th scope=col>df9_correct</th></tr>
+	<tr><th></th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th></tr>
+</thead>
+<tbody>
+	<tr><th scope=row>1</th><td>Y1 - Y2</td><td>Y1</td><td>Y2</td><td>no edge </td><td>   7</td><td>5</td><td>988</td><td> 988</td><td> 25</td><td>33</td><td>942</td><td>942</td><td> 97</td><td> 77</td><td>826</td><td>826</td></tr>
+	<tr><th scope=row>2</th><td>Y1 - Y3</td><td>Y1</td><td>Y3</td><td>Y1 -&gt; Y3</td><td> 994</td><td>0</td><td><span style=white-space:pre-wrap>  6</span></td><td> 994</td><td>958</td><td>25</td><td> 17</td><td>958</td><td>819</td><td>105</td><td> 76</td><td>819</td></tr>
+	<tr><th scope=row>3</th><td>Y1 - Y4</td><td>Y1</td><td>Y4</td><td>Y1 -&gt; Y4</td><td> 992</td><td>0</td><td><span style=white-space:pre-wrap>  8</span></td><td> 992</td><td>993</td><td> 7</td><td><span style=white-space:pre-wrap>  0</span></td><td>993</td><td>958</td><td> 42</td><td><span style=white-space:pre-wrap>  0</span></td><td>958</td></tr>
+	<tr><th scope=row>4</th><td>Y2 - Y3</td><td>Y2</td><td>Y3</td><td>Y2 -&gt; Y3</td><td>1000</td><td>0</td><td><span style=white-space:pre-wrap>  0</span></td><td>1000</td><td>971</td><td>29</td><td><span style=white-space:pre-wrap>  0</span></td><td>971</td><td>869</td><td>131</td><td><span style=white-space:pre-wrap>  0</span></td><td>869</td></tr>
+	<tr><th scope=row>5</th><td>Y2 - Y4</td><td>Y2</td><td>Y4</td><td>no edge </td><td>  10</td><td>0</td><td>990</td><td> 990</td><td> 28</td><td> 7</td><td>965</td><td>965</td><td> 61</td><td> 35</td><td>904</td><td>904</td></tr>
+	<tr><th scope=row>6</th><td>Y3 - Y4</td><td>Y3</td><td>Y4</td><td>Y3 -&gt; Y4</td><td> 992</td><td>0</td><td><span style=white-space:pre-wrap>  8</span></td><td> 992</td><td>970</td><td>30</td><td><span style=white-space:pre-wrap>  0</span></td><td>970</td><td>870</td><td>130</td><td><span style=white-space:pre-wrap>  0</span></td><td>870</td></tr>
+</tbody>
+</table>
+</div><div class="output-label">Output 2</div><div class="output-html table-wrap"><table class="dataframe">
+<caption>A data.frame: 3 × 10</caption>
+<thead>
+	<tr><th></th><th scope=col>df</th><th scope=col>reps</th><th scope=col>attempts</th><th scope=col>failed_runs</th><th scope=col>pair_accuracy</th><th scope=col>mean_SHD</th><th scope=col>median_SHD</th><th scope=col>sd_SHD</th><th scope=col>exact_recovery_count</th><th scope=col>exact_recovery_rate</th></tr>
+	<tr><th></th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;dbl&gt;</th></tr>
+</thead>
+<tbody>
+	<tr><th scope=row>1</th><td>3</td><td>1000</td><td>1000</td><td>0</td><td>0.9926667</td><td>0.044</td><td>0</td><td>0.2100193</td><td>957</td><td>0.957</td></tr>
+	<tr><th scope=row>2</th><td>6</td><td>1000</td><td>1000</td><td>0</td><td>0.9665000</td><td>0.201</td><td>0</td><td>0.6363992</td><td>892</td><td>0.892</td></tr>
+	<tr><th scope=row>3</th><td>9</td><td>1000</td><td>1000</td><td>0</td><td>0.8743333</td><td>0.754</td><td>0</td><td>1.1827438</td><td>664</td><td>0.664</td></tr>
+</tbody>
+</table>
+</div></div>
+</section>
+
+<section class="markdown-block"><h2 id="reduced-signal-lingam-recovery-experiment-beta-03">Reduced-signal LiNGAM recovery experiment: $\beta = 0.3$</h2>
+<p>This section repeats the same Monte Carlo design after reducing the magnitude of the nonzero contemporaneous coefficients from $0.5$ to $0.3$. The true graph is unchanged, but the causal signal is weaker, so the exercise checks whether graph recovery deteriorates when the structural links are harder to detect.</p>
+<p>The outputs are directly comparable to the baseline experiment above and correspond to Table A.5 in Appendix A.</p></section>
+
+<section class="code-card" id="cell-7">
+  <div class="code-head">
+    <span>R code</span>
+    <span class="cell-no">Cell 7</span>
+  </div>
+  <details class="code-details">
+    <summary>Show code</summary>
+    <div class="code-block"><div class="highlight"><pre><span></span><span class="c1"># Reduced-signal contemporaneous structural matrix.</span>
+<span class="c1">#</span>
+<span class="c1"># The graph is the same as in the baseline experiment, but the nonzero</span>
+<span class="c1"># coefficients are smaller in absolute value. This makes the causal links</span>
+<span class="c1"># weaker while keeping the true edge pattern unchanged.</span>
+<span class="n">A0</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">matrix</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span>
+<span class="w">  </span><span class="m">1.0</span><span class="p">,</span><span class="w">  </span><span class="m">0.0</span><span class="p">,</span><span class="w">  </span><span class="m">0.0</span><span class="p">,</span><span class="w">  </span><span class="m">0.0</span><span class="p">,</span>
+<span class="w">  </span><span class="m">0.0</span><span class="p">,</span><span class="w">  </span><span class="m">1.0</span><span class="p">,</span><span class="w">  </span><span class="m">0.0</span><span class="p">,</span><span class="w">  </span><span class="m">0.0</span><span class="p">,</span>
+<span class="w"> </span><span class="m">-0.3</span><span class="p">,</span><span class="w"> </span><span class="m">-0.3</span><span class="p">,</span><span class="w">  </span><span class="m">1.0</span><span class="p">,</span><span class="w">  </span><span class="m">0.0</span><span class="p">,</span>
+<span class="w"> </span><span class="m">-0.3</span><span class="p">,</span><span class="w">  </span><span class="m">0.0</span><span class="p">,</span><span class="w"> </span><span class="m">-0.3</span><span class="p">,</span><span class="w">  </span><span class="m">1.0</span>
+<span class="p">),</span><span class="w"> </span><span class="n">nrow</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">4</span><span class="p">,</span><span class="w"> </span><span class="n">byrow</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">)</span>
+
+<span class="c1"># Assign the same variable names as in the baseline experiment.</span>
+<span class="nf">colnames</span><span class="p">(</span><span class="n">A0</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">rownames</span><span class="p">(</span><span class="n">A0</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="s">&quot;Y&quot;</span><span class="p">,</span><span class="w"> </span><span class="nf">seq_len</span><span class="p">(</span><span class="nf">nrow</span><span class="p">(</span><span class="n">A0</span><span class="p">)))</span>
+
+<span class="c1"># Run the same Monte Carlo experiment with the weaker A0 coefficients.</span>
+<span class="n">mc_out</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">run_lingam_mc</span><span class="p">(</span>
+<span class="w">  </span><span class="n">A0</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">A0</span><span class="p">,</span>
+<span class="w">  </span><span class="n">dfs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">3</span><span class="p">,</span><span class="w"> </span><span class="m">6</span><span class="p">,</span><span class="w"> </span><span class="m">9</span><span class="p">),</span>
+<span class="w">  </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">400</span><span class="p">,</span>
+<span class="w">  </span><span class="n">burnin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">100</span><span class="p">,</span>
+<span class="w">  </span><span class="n">reps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1000</span><span class="p">,</span>
+<span class="w">  </span><span class="n">tol</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1e-8</span><span class="p">,</span>
+<span class="w">  </span><span class="n">seed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">123</span>
+<span class="p">)</span>
+
+<span class="c1"># Pair-level recovery counts by degrees of freedom.</span>
+<span class="n">mc_out</span><span class="o">$</span><span class="n">pair_table_counts</span>
+
+<span class="c1"># Aggregate graph recovery statistics.</span>
+<span class="n">mc_out</span><span class="o">$</span><span class="n">graph_recovery_table</span>
+</pre></div>
+</div>
+  </details>
+  <div class="outputs"><div class="output-label">Output 1</div><div class="output-html table-wrap"><table class="dataframe">
+<caption>A data.frame: 6 × 16</caption>
+<thead>
+	<tr><th></th><th scope=col>pair</th><th scope=col>x</th><th scope=col>y</th><th scope=col>truth</th><th scope=col>df3_x_to_y</th><th scope=col>df3_y_to_x</th><th scope=col>df3_none</th><th scope=col>df3_correct</th><th scope=col>df6_x_to_y</th><th scope=col>df6_y_to_x</th><th scope=col>df6_none</th><th scope=col>df6_correct</th><th scope=col>df9_x_to_y</th><th scope=col>df9_y_to_x</th><th scope=col>df9_none</th><th scope=col>df9_correct</th></tr>
+	<tr><th></th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;chr&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th></tr>
+</thead>
+<tbody>
+	<tr><th scope=row>1</th><td>Y1 - Y2</td><td>Y1</td><td>Y2</td><td>no edge </td><td>  7</td><td>5</td><td>988</td><td>988</td><td>  8</td><td> 18</td><td>974</td><td>974</td><td> 21</td><td> 22</td><td>957</td><td>957</td></tr>
+	<tr><th scope=row>2</th><td>Y1 - Y3</td><td>Y1</td><td>Y3</td><td>Y1 -&gt; Y3</td><td>924</td><td>2</td><td> 74</td><td>924</td><td>854</td><td> 65</td><td> 81</td><td>854</td><td>702</td><td>186</td><td>112</td><td>702</td></tr>
+	<tr><th scope=row>3</th><td>Y1 - Y4</td><td>Y1</td><td>Y4</td><td>Y1 -&gt; Y4</td><td>906</td><td>0</td><td> 94</td><td>906</td><td>938</td><td> 24</td><td> 38</td><td>938</td><td>843</td><td>115</td><td> 42</td><td>843</td></tr>
+	<tr><th scope=row>4</th><td>Y2 - Y3</td><td>Y2</td><td>Y3</td><td>Y2 -&gt; Y3</td><td>931</td><td>0</td><td> 69</td><td>931</td><td>889</td><td> 67</td><td> 44</td><td>889</td><td>778</td><td>187</td><td> 35</td><td>778</td></tr>
+	<tr><th scope=row>5</th><td>Y2 - Y4</td><td>Y2</td><td>Y4</td><td>no edge </td><td> 11</td><td>0</td><td>989</td><td>989</td><td> 24</td><td>  8</td><td>968</td><td>968</td><td> 27</td><td> 13</td><td>960</td><td>960</td></tr>
+	<tr><th scope=row>6</th><td>Y3 - Y4</td><td>Y3</td><td>Y4</td><td>Y3 -&gt; Y4</td><td>913</td><td>1</td><td> 86</td><td>913</td><td>864</td><td>104</td><td> 32</td><td>864</td><td>754</td><td>205</td><td> 41</td><td>754</td></tr>
+</tbody>
+</table>
+</div><div class="output-label">Output 2</div><div class="output-html table-wrap"><table class="dataframe">
+<caption>A data.frame: 3 × 10</caption>
+<thead>
+	<tr><th></th><th scope=col>df</th><th scope=col>reps</th><th scope=col>attempts</th><th scope=col>failed_runs</th><th scope=col>pair_accuracy</th><th scope=col>mean_SHD</th><th scope=col>median_SHD</th><th scope=col>sd_SHD</th><th scope=col>exact_recovery_count</th><th scope=col>exact_recovery_rate</th></tr>
+	<tr><th></th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;int&gt;</th><th scope=col>&lt;dbl&gt;</th></tr>
+</thead>
+<tbody>
+	<tr><th scope=row>1</th><td>3</td><td>1000</td><td>1000</td><td>0</td><td>0.9418333</td><td>0.349</td><td>0</td><td>0.5634860</td><td>693</td><td>0.693</td></tr>
+	<tr><th scope=row>2</th><td>6</td><td>1000</td><td>1000</td><td>0</td><td>0.9145000</td><td>0.513</td><td>0</td><td>0.8015444</td><td>639</td><td>0.639</td></tr>
+	<tr><th scope=row>3</th><td>9</td><td>1000</td><td>1000</td><td>0</td><td>0.8323333</td><td>1.006</td><td>1</td><td>1.0803384</td><td>425</td><td>0.425</td></tr>
+</tbody>
+</table>
+</div></div>
+</section>
+
+    </main>
+  </div>
+</div>
+
+<footer class="footer">
+  Replication material for the paper
+  <em>Heterogeneous AI News and Magnificent Seven Hubs: Event-Day Causal Network Evidence</em>.
+</footer>
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Márton Espán — Research</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+
+    <style>
+      .research-card {
+        margin-top: 1.4rem;
+        padding: 1.45rem 1.6rem;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.82);
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.055);
+      }
+
+      .paper-topline {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 0.65rem;
+      }
+
+      .paper-kicker {
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #777;
+      }
+
+      .paper-year {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #555;
+        padding: 0.22rem 0.55rem;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.045);
+        white-space: nowrap;
+      }
+
+      .paper-title {
+        margin: 0;
+        max-width: 900px;
+        font-size: 1.28rem;
+        line-height: 1.35;
+        font-weight: 600;
+        color: #1f1f1f;
+      }
+
+      .paper-abstract-box {
+        margin-top: 1.05rem;
+        padding: 1rem 1.05rem;
+        border-left: 4px solid #b43c3c;
+        border-radius: 12px;
+        background: rgba(180, 60, 60, 0.045);
+      }
+
+      .abstract-heading {
+        margin-bottom: 0.35rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #8f3030;
+      }
+
+      .paper-abstract {
+        margin: 0;
+        font-size: 0.96rem;
+        line-height: 1.68;
+        color: #333;
+      }
+
+      .paper-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.75rem;
+        margin-top: 1.15rem;
+      }
+
+      .paper-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.55rem 0.9rem;
+        border-radius: 999px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+      }
+
+      .paper-button.primary {
+        color: #fff;
+        background: #9f2f2f;
+        box-shadow: 0 6px 16px rgba(159, 47, 47, 0.22);
+      }
+
+      .paper-button.primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 9px 20px rgba(159, 47, 47, 0.27);
+      }
+
+      .paper-note {
+        font-size: 0.88rem;
+        color: #666;
+      }
+
+      @media (max-width: 720px) {
+        .research-card {
+          padding: 1.15rem;
+        }
+
+        .paper-topline {
+          align-items: flex-start;
+          flex-direction: column;
+          gap: 0.45rem;
+        }
+
+        .paper-title {
+          font-size: 1.12rem;
+        }
+      }
+    </style>
+</head>
+
+<body>
+<div class="navbar">
+    <a href="index.html">Home</a>
+    <a href="cv.html">CV</a>
+    <a href="education.html">Education</a>
+    <a href="projects.html">Projects</a>
+    <a href="research.html">Research</a>
+</div>
+
+<div class="main-content">
+  <div class="cv-wrap">
+    <h1 class="cv-title">Research</h1>
+    <p class="cv-subtitle">Working papers and selected research projects.</p>
+
+    <section class="cv-section" id="research-list">
+      <article class="research-card">
+        <div class="paper-topline">
+          <div class="paper-kicker">Working paper</div>
+          <div class="paper-year">2026</div>
+        </div>
+
+        <h2 class="paper-title">
+          Heterogeneous AI News and Hub Formation: Event-Day Causal Network Evidence on the Magnificent Seven
+        </h2>
+
+        <div class="paper-abstract-box">
+          <div class="abstract-heading">Abstract</div>
+          <p class="paper-abstract">
+            Major AI announcements now rank among the key information events for equity markets, yet little is known about their firm-level transmission on the announcement day itself. This paper asks whether different AI-news types affect different subsets of AI-exposed firms, whether information transmission is centralized around Magnificent Seven (M7) stocks, and whether the main source node depends on the event type. Using high-frequency intraday data for M7 stocks and smaller AI-exposed firms, we estimate event-day networks with a DAG-based Directed R2 connectedness framework. The evidence shows that AI news does not follow a single market-wide transmission channel: the main source node changes across event types. M7 firms emerge as event-day hubs in compute- and adoption-related events, whereas disruption-related information can shift the main source node to a non-M7 firm. The results indicate that AI-related information is transmitted through event-specific equity-market channels, creating spillover vulnerabilities when information transmission is organized around a few dominant source nodes.
+          </p>
+        </div>
+
+        <div class="paper-actions">
+          <a href="research/heterogeneous_ai_news_replication.html" class="paper-button primary">
+            Replication files
+          </a>
+          <span class="paper-note">Code notebooks and replication materials for the empirical analysis.</span>
+        </div>
+      </article>
+    </section>
+
+  </div>
+</div>
+
+<div class="footer">
+    <a href="mailto:marton.espan@stud.uni-corvinus.hu">marton.espan@stud.uni-corvinus.hu</a>
+    |
+    <a href="mailto:Marton.Espan@ksh.hu">Marton.Espan@ksh.hu</a>
+    |
+    <a href="https://www.linkedin.com/in/marton-espan/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+    |
+    <a href="https://github.com/Espanm" target="_blank" rel="noopener noreferrer">GitHub</a>
+</div>
+</body>
+</html>

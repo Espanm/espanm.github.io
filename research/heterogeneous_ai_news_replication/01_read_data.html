@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Read Data and Construct Log Returns | Replication Notebook</title>
+<style>
+
+:root {
+  --bg: #0f1115;
+  --panel: #161a22;
+  --panel-2: #1c2230;
+  --text: #e8ecf3;
+  --muted: #a9b4c7;
+  --accent: #ff9f43;
+  --accent-2: #ff7b54;
+  --line: #2a3142;
+  --good: #6ee7b7;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background:
+    radial-gradient(circle at top left, rgba(255,159,67,0.10), transparent 28%),
+    radial-gradient(circle at top right, rgba(255,123,84,0.08), transparent 24%),
+    var(--bg);
+  color: var(--text);
+  font-family: Inter, Segoe UI, Arial, sans-serif;
+  line-height: 1.65;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover { text-decoration: underline; }
+
+.navbar {
+  position: static;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  gap: 36px;
+  padding: 18px 20px;
+  background: rgba(15,17,21,0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+
+.navbar a {
+  color: #f3f5f8;
+  text-decoration: none;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.navbar a:hover {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.container {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 34px 24px 40px;
+}
+
+.hero {
+  background: linear-gradient(135deg, rgba(255,159,67,0.12), rgba(255,123,84,0.08));
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 28px 30px;
+  box-shadow: 0 14px 40px rgba(0,0,0,0.25);
+  margin-bottom: 0;
+}
+
+.kicker {
+  color: var(--accent);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+}
+
+h1 {
+  margin: 8px 0 10px;
+  font-size: 38px;
+  line-height: 1.15;
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.hero-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,159,67,0.38);
+  background: rgba(255,159,67,0.10);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.hero-button:hover {
+  text-decoration: none;
+  background: rgba(255,159,67,0.17);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 28px;
+  margin-top: 26px;
+}
+
+.sidebar {
+  position: sticky;
+  top: 88px;
+  align-self: start;
+  max-height: calc(100vh - 110px);
+  overflow: auto;
+}
+
+.toc-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 18px;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+}
+
+.toc-title {
+  margin: 0 0 10px;
+  color: #fff;
+  font-size: 1rem;
+}
+
+.toc {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.toc a {
+  display: block;
+  padding: 8px 10px;
+  border-radius: 12px;
+  color: var(--muted);
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.toc a:hover {
+  color: var(--text);
+  background: rgba(255,255,255,0.04);
+  text-decoration: none;
+}
+
+.toc .level-1 { font-size: 1rem; }
+.toc .level-2 { padding-left: 18px; font-size: .96rem; }
+.toc .level-3 { padding-left: 30px; font-size: .92rem; }
+
+.markdown-block,
+.code-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 24px 26px;
+  margin-bottom: 22px;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+  scroll-margin-top: 90px;
+}
+
+.markdown-block:first-child { margin-top: 0; }
+
+.markdown-block h1,
+.markdown-block h2,
+.markdown-block h3 {
+  margin-top: 0;
+  color: #fff;
+}
+
+.markdown-block h1 { font-size: 30px; }
+.markdown-block h2 { font-size: 28px; margin-bottom: 14px; }
+.markdown-block h3 { font-size: 24px; margin-bottom: 14px; }
+
+.markdown-block p,
+.markdown-block li,
+.markdown-block blockquote {
+  color: var(--text);
+}
+
+.markdown-block ul,
+.markdown-block ol {
+  padding-left: 22px;
+}
+
+.markdown-block code {
+  background: rgba(255,255,255,0.06);
+  padding: 2px 7px;
+  border-radius: 8px;
+  font-size: .95em;
+}
+
+.markdown-block table,
+.table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 14px;
+  overflow: hidden;
+  border-radius: 14px;
+  display: table;
+}
+
+.markdown-block th,
+.markdown-block td,
+.table-wrap th,
+.table-wrap td {
+  border: 1px solid var(--line);
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.markdown-block th,
+.table-wrap th {
+  background: var(--panel-2);
+  color: #fff;
+}
+
+.markdown-block tr:nth-child(even) td,
+.table-wrap tr:nth-child(even) td {
+  background: rgba(255,255,255,0.02);
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.code-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.cell-no {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255,159,67,0.12);
+  border: 1px solid rgba(255,159,67,0.24);
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.code-details {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255,255,255,0.02);
+  overflow: hidden;
+}
+
+.code-details summary {
+  cursor: pointer;
+  padding: 14px 16px;
+  color: var(--muted);
+  user-select: none;
+  list-style: none;
+}
+
+.code-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.code-details summary::after {
+  content: 'Click to expand';
+  float: right;
+  color: var(--accent-2);
+  font-size: 12px;
+  letter-spacing: .02em;
+}
+
+.code-details[open] summary {
+  border-bottom: 1px solid var(--line);
+}
+
+.code-details[open] summary::after {
+  content: 'Click to collapse';
+}
+
+.code-block {
+  border-radius: 18px;
+  overflow: auto;
+}
+
+.highlight {
+  margin: 0;
+  background: #11161f !important;
+  padding: 18px 20px;
+}
+
+.highlight pre {
+  margin: 0;
+  color: #e6edf3;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.highlight .c,
+.highlight .cm,
+.highlight .c1 {
+  color: #7f8ea3 !important;
+  font-style: italic;
+}
+
+.highlight .k,
+.highlight .kd,
+.highlight .kn,
+.highlight .kr {
+  color: #ff9f43 !important;
+}
+
+.highlight .nf { color: #73c0ff !important; }
+.highlight .n { color: #e6edf3 !important; }
+.highlight .o { color: #ff7b54 !important; }
+.highlight .m,
+.highlight .mi,
+.highlight .mf { color: #a5d6ff !important; }
+
+.highlight .s,
+.highlight .s1,
+.highlight .s2 {
+  color: #b8e994 !important;
+}
+
+.highlight .p,
+.highlight .w {
+  color: #dbe4ee !important;
+}
+
+.outputs {
+  margin-top: 16px;
+}
+
+.outputs .output-label:not(:first-child) {
+  margin-top: 16px;
+}
+
+.output-label {
+  color: var(--good);
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.output-text {
+  margin: 0 0 10px;
+  background: #0b0e13;
+  color: #d6deeb;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  white-space: pre-wrap;
+}
+
+.output-html {
+  margin-top: 8px;
+}
+
+.output-html table {
+  width: 100%;
+}
+
+.img-wrap {
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  overflow: hidden;
+  background: #0b0e13;
+}
+
+.img-wrap img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.figure-caption {
+  padding: 9px 12px;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  background: rgba(255,255,255,0.02);
+}
+
+.markdown-block .MathJax,
+.markdown-block mjx-container {
+  font-size: 1.05em !important;
+}
+
+.markdown-block mjx-container[display="true"] {
+  margin: 1em 0 !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.footer {
+  margin-top: 10px;
+  padding: 28px 20px 34px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 13px;
+  border-top: 1px solid var(--line);
+}
+
+.footer a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.footer a:hover {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+@media (max-width: 920px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+@media (max-width: 720px) {
+  .navbar {
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 14px 12px;
+  }
+
+  .container {
+    padding: 20px 12px 28px;
+  }
+
+  .hero,
+  .markdown-block,
+  .code-card {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  h1 {
+    font-size: 30px;
+  }
+
+  .code-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+</style>
+
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$','$$'], ['\\[','\\]']]
+  },
+  options: {
+    skipHtmlTags: ['script','noscript','style','textarea','pre','code']
+  }
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body>
+<div class="navbar">
+  <a href="../../index.html">Home</a>
+  <a href="../../cv.html">CV</a>
+  <a href="../../education.html">Education</a>
+  <a href="../../projects.html">Projects</a>
+  <a href="../../research.html">Research</a>
+</div>
+
+<div class="container">
+  <header class="hero">
+    <div class="kicker">Replication notebook</div>
+    <h1>Read Data and Construct Log Returns</h1>
+    <div class="subtitle">Replication notebook for reading the raw one-minute stock-price files, aligning the intraday data, and constructing the full one-minute log-return dataset used in the event-day network analysis.</div>
+
+    <div class="hero-actions">
+      <a class="hero-button"
+         href="https://github.com/Espanm/heterogeneous-ai-news-m7-hubs-replication/blob/main/notebooks/01_read_data.ipynb"
+         target="_blank"
+         rel="noopener">
+        Download / view the original .ipynb on GitHub
+      </a>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="toc-card">
+        <h2 class="toc-title">Contents</h2>
+        <nav class="toc">
+          <a class="toc level-2" href="#read-and-prepare-intraday-stock-data">Read and prepare intraday stock data</a>
+        </nav>
+      </div>
+    </aside>
+
+    <main class="content">
+      <section class="markdown-block"><h2 id="read-and-prepare-intraday-stock-data">Read and prepare intraday stock data</h2>
+<p>This notebook reads the raw 1-minute stock price files and converts them into a single return dataset.</p>
+<p>Before running the code, download the raw intraday data for all required stocks and place the <code>.txt</code> files in <code>[YOUR FOLDER]</code>. Each file should be named exactly after the corresponding ticker symbol, for example <code>NVDA.txt</code>, <code>MSFT.txt</code>, or <code>SP500.txt</code>.</p>
+<p>The script checks whether all required files are available, reads the price data, keeps observations during regular U.S. market hours, aligns all series by timestamp, forward-fills missing prices, computes 1-minute log returns, replaces any remaining missing values with zero, and saves the resulting dataset as <code>full_dataset.csv</code> in the same folder.</p></section>
+
+<section class="code-card" id="cell-2">
+  <div class="code-head">
+    <span>R code</span>
+    <span class="cell-no">Cell 2</span>
+  </div>
+  <details class="code-details">
+    <summary>Show code</summary>
+    <div class="code-block"><div class="highlight"><pre><span></span><span class="nf">library</span><span class="p">(</span><span class="n">readr</span><span class="p">)</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">dplyr</span><span class="p">)</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">purrr</span><span class="p">)</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">zoo</span><span class="p">)</span>
+
+<span class="n">folder</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="s">&quot;[YOUR FOLDER]&quot;</span>
+<span class="n">output_file</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">file.path</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;full_dataset.csv&quot;</span><span class="p">)</span>
+
+<span class="n">start_date</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">as.Date</span><span class="p">(</span><span class="s">&quot;2021-05-20&quot;</span><span class="p">)</span>
+<span class="n">end_date</span><span class="w">   </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">as.Date</span><span class="p">(</span><span class="s">&quot;2026-03-10&quot;</span><span class="p">)</span>
+<span class="n">dates</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">format</span><span class="p">(</span><span class="nf">seq.Date</span><span class="p">(</span><span class="n">from</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">start_date</span><span class="p">,</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">end_date</span><span class="p">,</span><span class="w"> </span><span class="n">by</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;day&quot;</span><span class="p">),</span><span class="w"> </span><span class="s">&quot;%Y-%m-%d&quot;</span><span class="p">)</span>
+
+<span class="n">tickers_m7</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;NVDA&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;MSFT&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;AMZN&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;META&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;GOOG&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;TSLA&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;AAPL&quot;</span><span class="p">)</span>
+<span class="n">tickers_computing</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;AVGO&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;AMD&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;MU&quot;</span><span class="p">)</span>
+<span class="n">tickers_platform</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;ORCL&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;IBM&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;PLTR&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;CSCO&quot;</span><span class="p">)</span>
+<span class="n">tickers_disruption_adoption</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;CRM&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;NOW&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;INTU&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;WDAY&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;ADBE&quot;</span><span class="p">)</span>
+<span class="n">non_ai_tickers</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;WMT&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;COST&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;CVX&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;ABBV&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;PG&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;MRK&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;PM&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;MCD&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;PEP&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;T&quot;</span><span class="p">)</span>
+
+<span class="n">selected_tickers</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span>
+<span class="w">  </span><span class="n">tickers_m7</span><span class="p">,</span>
+<span class="w">  </span><span class="n">tickers_computing</span><span class="p">,</span>
+<span class="w">  </span><span class="n">tickers_platform</span><span class="p">,</span>
+<span class="w">  </span><span class="n">tickers_disruption_adoption</span><span class="p">,</span>
+<span class="w">  </span><span class="n">non_ai_tickers</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;SP500&quot;</span>
+<span class="p">)</span>
+
+<span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nf">dir.exists</span><span class="p">(</span><span class="n">folder</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nf">stop</span><span class="p">(</span><span class="nf">paste</span><span class="p">(</span><span class="s">&quot;Folder not found:&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">folder</span><span class="p">))</span>
+<span class="p">}</span>
+
+<span class="n">missing_files</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">selected_tickers</span><span class="p">[</span>
+<span class="w">  </span><span class="o">!</span><span class="nf">file.exists</span><span class="p">(</span><span class="nf">file.path</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="n">selected_tickers</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;.txt&quot;</span><span class="p">)))</span>
+<span class="p">]</span>
+
+<span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="n">missing_files</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="m">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nf">stop</span><span class="p">(</span>
+<span class="w">    </span><span class="nf">paste</span><span class="p">(</span>
+<span class="w">      </span><span class="s">&quot;The following files are missing:&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nf">paste0</span><span class="p">(</span><span class="n">missing_files</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;.txt&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">collapse</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;\n&quot;</span><span class="p">),</span>
+<span class="w">      </span><span class="n">sep</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;\n&quot;</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="w">  </span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">all_data</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">list</span><span class="p">()</span>
+
+<span class="kr">for</span><span class="w"> </span><span class="p">(</span><span class="n">ticker</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="n">selected_tickers</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">path</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">file.path</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="n">ticker</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;.txt&quot;</span><span class="p">))</span>
+
+<span class="w">  </span><span class="n">df</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_csv</span><span class="p">(</span>
+<span class="w">    </span><span class="n">path</span><span class="p">,</span>
+<span class="w">    </span><span class="n">col_names</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;datetime&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;open&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;high&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;low&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;price&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;volume&quot;</span><span class="p">),</span>
+<span class="w">    </span><span class="n">show_col_types</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span>
+<span class="w">  </span><span class="p">)</span>
+
+<span class="w">  </span><span class="n">original_datetime</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">df</span><span class="o">$</span><span class="n">datetime</span>
+<span class="w">  </span><span class="n">parsed_datetime</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">as.POSIXct</span><span class="p">(</span><span class="n">original_datetime</span><span class="p">,</span><span class="w"> </span><span class="n">tz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;America/New_York&quot;</span><span class="p">)</span>
+
+<span class="w">  </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">all</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">parsed_datetime</span><span class="p">)))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">parsed_datetime</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">as.POSIXct</span><span class="p">(</span><span class="n">original_datetime</span><span class="p">,</span><span class="w"> </span><span class="n">tz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;UTC&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="n">parsed_datetime</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">as.POSIXct</span><span class="p">(</span>
+<span class="w">      </span><span class="nf">format</span><span class="p">(</span><span class="n">parsed_datetime</span><span class="p">,</span><span class="w"> </span><span class="n">tz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;America/New_York&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">usetz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">),</span>
+<span class="w">      </span><span class="n">tz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;America/New_York&quot;</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="n">df</span><span class="o">$</span><span class="n">datetime</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">parsed_datetime</span>
+<span class="w">  </span><span class="n">df</span><span class="o">$</span><span class="n">date</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">format</span><span class="p">(</span><span class="n">df</span><span class="o">$</span><span class="n">datetime</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;%Y-%m-%d&quot;</span><span class="p">)</span>
+<span class="w">  </span><span class="n">df</span><span class="o">$</span><span class="n">time</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">format</span><span class="p">(</span><span class="n">df</span><span class="o">$</span><span class="n">datetime</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;%H:%M:%S&quot;</span><span class="p">)</span>
+
+<span class="w">  </span><span class="n">df</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">df</span><span class="w"> </span><span class="o">%&gt;%</span>
+<span class="w">    </span><span class="nf">filter</span><span class="p">(</span><span class="o">!</span><span class="nf">is.na</span><span class="p">(</span><span class="n">datetime</span><span class="p">),</span><span class="w"> </span><span class="o">!</span><span class="nf">is.na</span><span class="p">(</span><span class="n">price</span><span class="p">))</span><span class="w"> </span><span class="o">%&gt;%</span>
+<span class="w">    </span><span class="nf">filter</span><span class="p">(</span><span class="n">date</span><span class="w"> </span><span class="o">%in%</span><span class="w"> </span><span class="n">dates</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span>
+<span class="w">    </span><span class="nf">filter</span><span class="p">(</span><span class="n">time</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="s">&quot;09:30:00&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">time</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="s">&quot;16:00:00&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span>
+<span class="w">    </span><span class="nf">select</span><span class="p">(</span><span class="n">datetime</span><span class="p">,</span><span class="w"> </span><span class="n">price</span><span class="p">)</span>
+
+<span class="w">  </span><span class="nf">colnames</span><span class="p">(</span><span class="n">df</span><span class="p">)[</span><span class="m">2</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">ticker</span>
+<span class="w">  </span><span class="n">all_data</span><span class="p">[[</span><span class="n">ticker</span><span class="p">]]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">df</span>
+<span class="p">}</span>
+
+<span class="n">data</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">reduce</span><span class="p">(</span><span class="n">all_data</span><span class="p">,</span><span class="w"> </span><span class="n">full_join</span><span class="p">,</span><span class="w"> </span><span class="n">by</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;datetime&quot;</span><span class="p">)</span>
+
+<span class="n">data</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">data</span><span class="w"> </span><span class="o">%&gt;%</span>
+<span class="w">  </span><span class="nf">arrange</span><span class="p">(</span><span class="n">datetime</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span>
+<span class="w">  </span><span class="nf">distinct</span><span class="p">(</span><span class="n">datetime</span><span class="p">,</span><span class="w"> </span><span class="n">.keep_all</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">)</span>
+
+<span class="n">data</span><span class="p">[</span><span class="n">selected_tickers</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">lapply</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">selected_tickers</span><span class="p">],</span><span class="w"> </span><span class="n">zoo</span><span class="o">::</span><span class="n">na.locf</span><span class="p">,</span><span class="w"> </span><span class="n">na.rm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+
+<span class="n">data</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">data</span><span class="p">[,</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;datetime&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">selected_tickers</span><span class="p">)]</span>
+
+<span class="n">data_returns</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">data</span><span class="w"> </span><span class="o">%&gt;%</span>
+<span class="w">  </span><span class="nf">arrange</span><span class="p">(</span><span class="n">datetime</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span>
+<span class="w">  </span><span class="nf">mutate</span><span class="p">(</span><span class="nf">across</span><span class="p">(</span><span class="nf">all_of</span><span class="p">(</span><span class="n">selected_tickers</span><span class="p">),</span><span class="w"> </span><span class="o">~</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span><span class="n">.</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span><span class="nf">lag</span><span class="p">(</span><span class="n">.</span><span class="p">))))</span><span class="w"> </span><span class="o">%&gt;%</span>
+<span class="w">  </span><span class="nf">mutate</span><span class="p">(</span><span class="nf">across</span><span class="p">(</span><span class="nf">all_of</span><span class="p">(</span><span class="n">selected_tickers</span><span class="p">),</span><span class="w"> </span><span class="o">~</span><span class="w"> </span><span class="nf">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">.</span><span class="p">),</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="n">.</span><span class="p">)))</span>
+
+<span class="nf">write_csv</span><span class="p">(</span><span class="n">data_returns</span><span class="p">,</span><span class="w"> </span><span class="n">output_file</span><span class="p">)</span>
+
+<span class="nf">write_csv</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="n">output_file</span><span class="p">)</span>
+</pre></div>
+</div>
+  </details>
+  
+</section>
+
+    </main>
+  </div>
+</div>
+
+<footer class="footer">
+  Replication material for the paper
+  <em>Heterogeneous AI News and Magnificent Seven Hubs: Event-Day Causal Network Evidence</em>.
+</footer>
+</body>
+</html>

@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Illustrative Example | Replication Notebook</title>
+<style>
+
+:root {
+  --bg: #0f1115;
+  --panel: #161a22;
+  --panel-2: #1c2230;
+  --text: #e8ecf3;
+  --muted: #a9b4c7;
+  --accent: #ff9f43;
+  --accent-2: #ff7b54;
+  --line: #2a3142;
+  --good: #6ee7b7;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+html, body {
+  margin: 0;
+  padding: 0;
+  background:
+    radial-gradient(circle at top left, rgba(255,159,67,0.10), transparent 28%),
+    radial-gradient(circle at top right, rgba(255,123,84,0.08), transparent 24%),
+    var(--bg);
+  color: var(--text);
+  font-family: Inter, Segoe UI, Arial, sans-serif;
+  line-height: 1.65;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.container { max-width: 980px; margin: 0 auto; }
+.hero {
+  background: linear-gradient(135deg, rgba(255,159,67,0.12), rgba(255,123,84,0.08));
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 28px 30px;
+  box-shadow: 0 14px 40px rgba(0,0,0,0.25);
+  margin-bottom: 28px;
+}
+.kicker {
+  color: var(--accent);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+}
+h1 { margin: 8px 0 10px; font-size: 38px; line-height: 1.15; }
+.subtitle {
+  color: var(--muted);
+  font-size: 16px;
+  font-weight: 500;
+}
+.markdown-block, .code-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 24px 26px;
+  margin-bottom: 22px;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+}
+.markdown-block h1, .markdown-block h2, .markdown-block h3 {
+  margin-top: 0;
+  color: #fff;
+}
+.markdown-block h2 {
+  font-size: 28px;
+  margin-bottom: 14px;
+}
+.markdown-block h3 {
+  font-size: 24px;
+  margin-bottom: 14px;
+}
+.markdown-block p, .markdown-block li, .markdown-block blockquote { color: var(--text); }
+.markdown-block ul, .markdown-block ol { padding-left: 22px; }
+.markdown-block code {
+  background: rgba(255,255,255,0.06);
+  padding: 2px 7px;
+  border-radius: 8px;
+  font-size: .95em;
+}
+.markdown-block table, .table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 14px;
+  overflow: hidden;
+  border-radius: 14px;
+  display: table;
+}
+.markdown-block th, .markdown-block td,
+.table-wrap th, .table-wrap td {
+  border: 1px solid var(--line);
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+.markdown-block th, .table-wrap th {
+  background: var(--panel-2);
+  color: #fff;
+}
+.markdown-block tr:nth-child(even) td,
+.table-wrap tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+.table-wrap { overflow-x: auto; }
+.table-wrap caption {
+  caption-side: top;
+  text-align: left;
+  color: var(--muted);
+  padding-bottom: 8px;
+}
+.code-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.cell-no {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255,159,67,0.12);
+  border: 1px solid rgba(255,159,67,0.24);
+  color: var(--accent);
+  white-space: nowrap;
+}
+.code-details {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255,255,255,0.02);
+  overflow: hidden;
+}
+.code-details summary {
+  cursor: pointer;
+  padding: 14px 16px;
+  color: var(--muted);
+  user-select: none;
+  list-style: none;
+}
+.code-details summary::-webkit-details-marker { display: none; }
+.code-details summary::after {
+  content: 'Click to expand';
+  float: right;
+  color: var(--accent-2);
+  font-size: 12px;
+  letter-spacing: .02em;
+}
+.code-details[open] summary {
+  border-bottom: 1px solid var(--line);
+}
+.code-details[open] summary::after { content: 'Click to collapse'; }
+.code-wrap, .code-block {
+  border-radius: 18px;
+  overflow: auto;
+}
+.output-wrap, .outputs {
+  margin-top: 16px;
+}
+.output-label {
+  color: var(--good);
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.output-text {
+  margin: 0 0 10px;
+  background: #0b0e13;
+  color: #d6deeb;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  white-space: pre-wrap;
+}
+.img-wrap {
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  overflow: hidden;
+  background: #0b0e13;
+}
+.img-wrap img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.highlight {
+  margin: 0;
+  background: #11161f !important;
+  padding: 18px 20px;
+}
+.highlight pre {
+  margin: 0;
+  color: #e6edf3;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.55;
+}
+/* Override pygments colors for dark layout */
+.highlight .c, .highlight .cm, .highlight .c1 { color: #7f8ea3 !important; font-style: italic; }
+.highlight .k, .highlight .kd, .highlight .kn, .highlight .kr { color: #ff9f43 !important; }
+.highlight .nf { color: #73c0ff !important; }
+.highlight .n { color: #e6edf3 !important; }
+.highlight .o { color: #ff7b54 !important; }
+.highlight .m, .highlight .mi, .highlight .mf { color: #a5d6ff !important; }
+.highlight .s, .highlight .s1, .highlight .s2 { color: #b8e994 !important; }
+.highlight .p, .highlight .w { color: #dbe4ee !important; }
+.markdown-block .MathJax, .markdown-block mjx-container {
+  font-size: 1.05em !important;
+}
+.markdown-block mjx-container[display="true"] {
+  margin: 1em 0 !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.footer {
+  margin-top: 28px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 13px;
+}
+@media (max-width: 720px) {
+  body { padding: 20px 12px 40px; }
+  .hero, .markdown-block, .code-card { padding: 18px; border-radius: 18px; }
+  h1 { font-size: 30px; }
+  .code-head { flex-direction: column; align-items: flex-start; }
+}
+
+/* Site navigation + footer */
+body { padding: 0; }
+.navbar {
+  position: static;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  gap: 36px;
+  padding: 18px 20px;
+  background: rgba(15,17,21,0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.navbar a {
+  color: #f3f5f8;
+  text-decoration: none;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.navbar a:hover { color: var(--accent); text-decoration: none; }
+.container { max-width: 1120px; margin: 0 auto; padding: 34px 24px 40px; }
+.hero { margin-bottom: 0; }
+.layout {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 28px;
+  margin-top: 26px;
+}
+.sidebar {
+  position: sticky;
+  top: 88px;
+  align-self: start;
+  max-height: calc(100vh - 110px);
+  overflow: auto;
+}
+.toc-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 18px;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+}
+.toc-title {
+  margin: 0 0 10px;
+  color: #fff;
+  font-size: 1rem;
+}
+.toc {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.toc a {
+  display: block;
+  padding: 8px 10px;
+  border-radius: 12px;
+  color: var(--muted);
+  line-height: 1.35;
+  word-break: break-word;
+}
+.toc a:hover {
+  color: var(--text);
+  background: rgba(255,255,255,0.04);
+  text-decoration: none;
+}
+.toc .level-2 { padding-left: 18px; font-size: .96rem; }
+.toc .level-3 { padding-left: 30px; font-size: .92rem; }
+.footer {
+  margin-top: 10px;
+  padding: 28px 20px 34px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 13px;
+  border-top: 1px solid var(--line);
+}
+.footer a { color: var(--muted); text-decoration: none; }
+.footer a:hover { color: var(--accent); text-decoration: none; }
+
+@media (max-width: 920px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+}
+@media (max-width: 720px) {
+  .navbar {
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 14px 12px;
+  }
+  .container { padding: 20px 12px 28px; }
+}
+
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+.hero-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,159,67,0.38);
+  background: rgba(255,159,67,0.10);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 14px;
+}
+.hero-button:hover {
+  text-decoration: none;
+  background: rgba(255,159,67,0.17);
+}
+.markdown-block:first-child { margin-top: 0; }
+.code-card { scroll-margin-top: 90px; }
+.markdown-block { scroll-margin-top: 90px; }
+.outputs .output-label:not(:first-child) { margin-top: 16px; }
+.figure-caption {
+  padding: 9px 12px;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  background: rgba(255,255,255,0.02);
+}
+.output-html table { width: 100%; }
+.output-html .dataframe caption { color: var(--muted); }
+.badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+</style>
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['$','$'], ['\(','\)']],
+    displayMath: [['$$','$$'], ['\[','\]']]
+  },
+  options: {
+    skipHtmlTags: ['script','noscript','style','textarea','pre','code']
+  }
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<div class="navbar">
+  <a href="../../index.html">Home</a>
+  <a href="../../cv.html">CV</a>
+  <a href="../../education.html">Education</a>
+  <a href="../../projects.html">Projects</a>
+  <a href="../../research.html">Research</a>
+</div>
+<div class="container">
+  <header class="hero">
+    <div class="kicker">Replication notebook</div>
+    <h1>Illustrative Example</h1>
+    <div class="subtitle">An illustrative structural network example comparing Directed $R^2$ connectedness, $R^2$ connectedness, and Diebold--Yilmaz network representations.</div>
+
+    <div class="hero-actions">
+      <a class="hero-button" href="https://github.com/Espanm/heterogeneous-ai-news-m7-hubs-replication/blob/main/notebooks/02_an_illustrative_example.ipynb" target="_blank" rel="noopener">Download / view the original .ipynb on GitHub</a>
+    </div>
+  </header>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="card toc-card">
+        <h2 class="toc-title">Contents</h2>
+        <nav class="toc"><a class="toc level-2" href="#overview">Overview</a><a class="toc level-2" href="#plotting-function">Plotting function</a><a class="toc level-2" href="#data-generating-process">Data-generating process</a><a class="toc level-2" href="#network-calculations">Network calculations</a><a class="toc level-2" href="#network-plots">Network plots</a><a class="toc level-2" href="#numerical-network-tables">Numerical network tables</a></nav>
+      </div>
+    </aside>
+    <main class="content">
+      <section class="markdown-block"><h2 id="overview">Overview</h2>
+<p>This notebook reproduces the illustrative example presented in Section 2 of the paper. The purpose of the example is to show how different network measures behave in a simple structural system where the true contemporaneous causal structure is known.</p>
+<p>The notebook proceeds in four main steps. First, it loads the required package, <code>R2DAG</code>, which contains the theoretical network functions used in the paper. Second, it defines the structural contemporaneous matrix $A_0$ for a four-variable data-generating process. Third, it computes three alternative theoretical network representations for the same system: the proposed Directed $R^2$ network, the $R^2$ network, and the Diebold--Yilmaz network. Finally, it plots the resulting networks and prints the corresponding numerical spillover tables.</p>
+</section>
+
+<section class="code-card" id="cell-1">
+  <div class="code-head"><span>R code</span><span class="cell-no">Cell 1</span></div>
+  <details class="code-details">
+    <summary>Show code</summary>
+    <div class="code-block"><div class="highlight"><pre><span></span><span class="c1"># ============================================================</span>
+<span class="c1"># Required package: R2DAG</span>
+<span class="c1"># ============================================================</span>
+<span class="c1"># This notebook reproduces the illustrative example in the paper.</span>
+<span class="c1"># The main network computations rely on the author&#39;s R package,</span>
+<span class="c1"># R2DAG, which is available from GitHub.</span>
+<span class="c1">#</span>
+<span class="c1"># The installation command is included for replicability. In an</span>
+<span class="c1"># already configured environment, this cell only needs to be run once.</span>
+<span class="c1"># We use dependencies = FALSE and upgrade = &quot;never&quot; to avoid changing</span>
+<span class="c1"># already installed packages during replication.</span>
+
+<span class="c1"># Install the package from GitHub.</span>
+<span class="n">devtools</span><span class="o">::</span><span class="nf">install_github</span><span class="p">(</span>
+<span class="w">  </span><span class="s">&quot;espanm/R2DAG&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">,</span>
+<span class="w">  </span><span class="n">upgrade</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;never&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># Load the package after installation.</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">R2DAG</span><span class="p">)</span>
+</pre></div>
+</div>
+  </details>
+<div class="outputs"><div class="output-label">Output 1</div><pre class="output-text">Using GitHub PAT from the git credential store.
+
+Downloading GitHub repo espanm/R2DAG@HEAD
+
+</pre><div class="output-label">Output 2</div><pre class="output-text">── R CMD build ─────────────────────────────────────────────────────────────────
+* checking for file &#x27;C:\Users\User\AppData\Local\Temp\RtmpCUGrFl\remotes6f88617538a4\Espanm-R2DAG-15f0338/DESCRIPTION&#x27; ... OK
+* preparing &#x27;R2DAG&#x27;:
+* checking DESCRIPTION meta-information ... OK
+* checking for LF line-endings in source and make files and shell scripts
+* checking for empty or unneeded directories
+Omitted &#x27;LazyData&#x27; from DESCRIPTION
+* building &#x27;R2DAG_0.1.1.tar.gz&#x27;
+
+</pre><div class="output-label">Output 3</div><pre class="output-text">Installing package into &#x27;C:/Users/User/AppData/Local/R/win-library/4.5&#x27;
+(as &#x27;lib&#x27; is unspecified)
+
+</pre></div></section>
+<section class="markdown-block"><h2 id="plotting-function">Plotting function</h2>
+<p>The following helper function converts a square spillover table into a directed net graph. It is used only for visualizing the three networks in the illustrative example; the numerical network values are computed later by <code>theoretical_R2_network()</code>.</p>
+</section>
+
+<section class="code-card" id="cell-2">
+  <div class="code-head"><span>R code</span><span class="cell-no">Cell 2</span></div>
+  <details class="code-details">
+    <summary>Show code</summary>
+    <div class="code-block"><div class="highlight"><pre><span></span><span class="c1"># The igraph package is used only for graph construction and plotting.</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">igraph</span><span class="p">)</span>
+
+<span class="n">plot_net_graph</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">tab</span><span class="p">,</span>
+<span class="w">                           </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Net directed graph&quot;</span><span class="p">,</span>
+<span class="w">                           </span><span class="n">vertex_color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;orange&quot;</span><span class="p">,</span>
+<span class="w">                           </span><span class="n">edge_color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;black&quot;</span><span class="p">,</span>
+<span class="w">                           </span><span class="n">label_color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;blue&quot;</span><span class="p">,</span>
+<span class="w">                           </span><span class="n">vertex_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">35</span><span class="p">,</span>
+<span class="w">                           </span><span class="n">label_cex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1.2</span><span class="p">,</span>
+<span class="w">                           </span><span class="n">edge_label_cex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1.1</span><span class="p">,</span>
+<span class="w">                           </span><span class="n">edge_width_scale</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">12</span><span class="p">,</span>
+<span class="w">                           </span><span class="n">arrow_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.9</span><span class="p">,</span>
+<span class="w">                           </span><span class="n">arrow_width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1.8</span><span class="p">,</span>
+<span class="w">                           </span><span class="n">edge_curved</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.15</span><span class="p">,</span>
+<span class="w">                           </span><span class="n">label_offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.08</span><span class="p">,</span>
+<span class="w">                           </span><span class="n">label_pos</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.35</span><span class="p">,</span>
+<span class="w">                           </span><span class="n">layout_fun</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">igraph</span><span class="o">::</span><span class="n">layout_in_circle</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span>
+<span class="w">  </span><span class="c1"># Check that the plotting dependency is available.</span>
+<span class="w">  </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nf">requireNamespace</span><span class="p">(</span><span class="s">&quot;igraph&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">quietly</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nf">stop</span><span class="p">(</span><span class="s">&quot;The &#39;igraph&#39; package is not installed.&quot;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span>
+<span class="w">  </span><span class="c1"># ------------------------------------------------------</span>
+<span class="w">  </span><span class="c1"># 1. Basic checks and preparation</span>
+<span class="w">  </span><span class="c1"># ------------------------------------------------------</span>
+<span class="w">  </span><span class="c1"># The input is expected to be a square matrix-like object whose</span>
+<span class="w">  </span><span class="c1"># rows and columns refer to the same variables.</span>
+<span class="w">  </span><span class="n">M</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">as.matrix</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
+<span class="w">  </span>
+<span class="w">  </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">nrow</span><span class="p">(</span><span class="n">M</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nf">ncol</span><span class="p">(</span><span class="n">M</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nf">stop</span><span class="p">(</span><span class="s">&quot;Input must be a square matrix or table.&quot;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span>
+<span class="w">  </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">is.null</span><span class="p">(</span><span class="nf">rownames</span><span class="p">(</span><span class="n">M</span><span class="p">))</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nf">is.null</span><span class="p">(</span><span class="nf">colnames</span><span class="p">(</span><span class="n">M</span><span class="p">)))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nf">stop</span><span class="p">(</span><span class="s">&quot;The matrix must have row names and column names.&quot;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span>
+<span class="w">  </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nf">identical</span><span class="p">(</span><span class="nf">rownames</span><span class="p">(</span><span class="n">M</span><span class="p">),</span><span class="w"> </span><span class="nf">colnames</span><span class="p">(</span><span class="n">M</span><span class="p">)))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nf">stop</span><span class="p">(</span><span class="s">&quot;Row names and column names must match.&quot;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span>
+<span class="w">  </span><span class="n">nodes</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">rownames</span><span class="p">(</span><span class="n">M</span><span class="p">)</span>
+<span class="w">  </span><span class="n">n</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">nrow</span><span class="p">(</span><span class="n">M</span><span class="p">)</span>
+<span class="w">  </span>
+<span class="w">  </span><span class="c1"># Own effects are not plotted as network links.</span>
+<span class="w">  </span><span class="nf">diag</span><span class="p">(</span><span class="n">M</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0</span>
+<span class="w">  </span>
+<span class="w">  </span><span class="c1"># ------------------------------------------------------</span>
+<span class="w">  </span><span class="c1"># 2. Netting procedure</span>
+<span class="w">  </span><span class="c1"># ------------------------------------------------------</span>
+<span class="w">  </span><span class="c1"># The convention of the network tables is that M[i, j] denotes</span>
+<span class="w">  </span><span class="c1"># the effect running from variable j to variable i. For every</span>
+<span class="w">  </span><span class="c1"># unordered pair {i, j}, we plot only the net direction, i.e. the</span>
+<span class="w">  </span><span class="c1"># larger bilateral effect minus the smaller bilateral effect.</span>
+<span class="w">  </span><span class="n">edge_list</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">list</span><span class="p">()</span>
+<span class="w">  </span>
+<span class="w">  </span><span class="kr">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="m">1</span><span class="o">:</span><span class="p">(</span><span class="n">n</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="m">1</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kr">for</span><span class="w"> </span><span class="p">(</span><span class="n">j</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span><span class="p">)</span><span class="o">:</span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">val_ij</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">M</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">]</span><span class="w">  </span><span class="c1"># effect j -&gt; i</span>
+<span class="w">      </span><span class="n">val_ji</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">M</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">i</span><span class="p">]</span><span class="w">  </span><span class="c1"># effect i -&gt; j</span>
+<span class="w">      </span>
+<span class="w">      </span><span class="n">net_val</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">abs</span><span class="p">(</span><span class="n">val_ij</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">val_ji</span><span class="p">)</span>
+<span class="w">      </span>
+<span class="w">      </span><span class="c1"># Keep only pairs with a nonzero net effect.</span>
+<span class="w">      </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="n">net_val</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="m">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="n">val_ij</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">val_ji</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="n">edge_list</span><span class="p">[[</span><span class="nf">length</span><span class="p">(</span><span class="n">edge_list</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span><span class="p">]]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">data.frame</span><span class="p">(</span>
+<span class="w">            </span><span class="n">from</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nodes</span><span class="p">[</span><span class="n">j</span><span class="p">],</span>
+<span class="w">            </span><span class="n">to</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nodes</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+<span class="w">            </span><span class="n">weight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">net_val</span>
+<span class="w">          </span><span class="p">)</span>
+<span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="n">val_ji</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">val_ij</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="n">edge_list</span><span class="p">[[</span><span class="nf">length</span><span class="p">(</span><span class="n">edge_list</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span><span class="p">]]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">data.frame</span><span class="p">(</span>
+<span class="w">            </span><span class="n">from</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nodes</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+<span class="w">            </span><span class="n">to</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nodes</span><span class="p">[</span><span class="n">j</span><span class="p">],</span>
+<span class="w">            </span><span class="n">weight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">net_val</span>
+<span class="w">          </span><span class="p">)</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span>
+<span class="w">  </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="n">edge_list</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nf">stop</span><span class="p">(</span><span class="s">&quot;There are no nonzero net edges to plot.&quot;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span>
+<span class="w">  </span><span class="n">edges</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">do.call</span><span class="p">(</span><span class="n">rbind</span><span class="p">,</span><span class="w"> </span><span class="n">edge_list</span><span class="p">)</span>
+<span class="w">  </span>
+<span class="w">  </span><span class="c1"># ------------------------------------------------------</span>
+<span class="w">  </span><span class="c1"># 3. Build graph object</span>
+<span class="w">  </span><span class="c1"># ------------------------------------------------------</span>
+<span class="w">  </span><span class="c1"># Edge widths are proportional to the absolute net effect.</span>
+<span class="w">  </span><span class="n">g</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">igraph</span><span class="o">::</span><span class="nf">graph_from_data_frame</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span><span class="w"> </span><span class="n">directed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">,</span><span class="w"> </span><span class="n">vertices</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nodes</span><span class="p">)</span>
+<span class="w">  </span>
+<span class="w">  </span><span class="nf">E</span><span class="p">(</span><span class="n">g</span><span class="p">)</span><span class="o">$</span><span class="n">label</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">sprintf</span><span class="p">(</span><span class="s">&quot;%.4f&quot;</span><span class="p">,</span><span class="w"> </span><span class="nf">E</span><span class="p">(</span><span class="n">g</span><span class="p">)</span><span class="o">$</span><span class="n">weight</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">E</span><span class="p">(</span><span class="n">g</span><span class="p">)</span><span class="o">$</span><span class="n">width</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">E</span><span class="p">(</span><span class="n">g</span><span class="p">)</span><span class="o">$</span><span class="n">weight</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">edge_width_scale</span>
+<span class="w">  </span>
+<span class="w">  </span><span class="c1"># The layout can be changed through the layout_fun argument.</span>
+<span class="w">  </span><span class="n">lay</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">layout_fun</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+<span class="w">  </span>
+<span class="w">  </span><span class="c1"># ------------------------------------------------------</span>
+<span class="w">  </span><span class="c1"># 4. Plot graph without built-in edge labels</span>
+<span class="w">  </span><span class="c1"># ------------------------------------------------------</span>
+<span class="w">  </span><span class="c1"># Edge labels are added manually below because this gives better</span>
+<span class="w">  </span><span class="c1"># control over their position relative to the arrows.</span>
+<span class="w">  </span><span class="nf">plot</span><span class="p">(</span>
+<span class="w">    </span><span class="n">g</span><span class="p">,</span>
+<span class="w">    </span><span class="n">layout</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lay</span><span class="p">,</span>
+<span class="w">    </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">main</span><span class="p">,</span>
+<span class="w">    </span><span class="n">vertex.color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vertex_color</span><span class="p">,</span>
+<span class="w">    </span><span class="n">vertex.frame.color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;black&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="n">vertex.size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vertex_size</span><span class="p">,</span>
+<span class="w">    </span><span class="n">vertex.label.color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;black&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="n">vertex.label.cex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">label_cex</span><span class="p">,</span>
+<span class="w">    </span><span class="n">vertex.label.font</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">,</span>
+<span class="w">    </span><span class="n">edge.color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">edge_color</span><span class="p">,</span>
+<span class="w">    </span><span class="n">edge.arrow.size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">arrow_size</span><span class="p">,</span>
+<span class="w">    </span><span class="n">edge.arrow.width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">arrow_width</span><span class="p">,</span>
+<span class="w">    </span><span class="n">edge.curved</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">edge_curved</span><span class="p">,</span>
+<span class="w">    </span><span class="n">edge.label</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">NA</span>
+<span class="w">  </span><span class="p">)</span>
+<span class="w">  </span>
+<span class="w">  </span><span class="c1"># ------------------------------------------------------</span>
+<span class="w">  </span><span class="c1"># 5. Add edge labels manually</span>
+<span class="w">  </span><span class="c1"># ------------------------------------------------------</span>
+<span class="w">  </span><span class="c1"># label_pos controls where the label is placed along the edge.</span>
+<span class="w">  </span><span class="c1"># label_offset moves the label perpendicular to the edge. These</span>
+<span class="w">  </span><span class="c1"># two parameters make the labels easier to read in small graphs.</span>
+<span class="w">  </span><span class="n">edge_ends</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">igraph</span><span class="o">::</span><span class="nf">ends</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">igraph</span><span class="o">::</span><span class="nf">E</span><span class="p">(</span><span class="n">g</span><span class="p">),</span><span class="w"> </span><span class="n">names</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<span class="w">  </span>
+<span class="w">  </span><span class="kr">for</span><span class="w"> </span><span class="p">(</span><span class="n">k</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nf">seq_len</span><span class="p">(</span><span class="nf">nrow</span><span class="p">(</span><span class="n">edge_ends</span><span class="p">)))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">from_id</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">edge_ends</span><span class="p">[</span><span class="n">k</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">]</span>
+<span class="w">    </span><span class="n">to_id</span><span class="w">   </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">edge_ends</span><span class="p">[</span><span class="n">k</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">]</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="n">x0</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">lay</span><span class="p">[</span><span class="n">from_id</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">]</span>
+<span class="w">    </span><span class="n">y0</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">lay</span><span class="p">[</span><span class="n">from_id</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">]</span>
+<span class="w">    </span><span class="n">x1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">lay</span><span class="p">[</span><span class="n">to_id</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">]</span>
+<span class="w">    </span><span class="n">y1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">lay</span><span class="p">[</span><span class="n">to_id</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">]</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="n">dx</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">x1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">x0</span>
+<span class="w">    </span><span class="n">dy</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">y1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">y0</span>
+<span class="w">    </span><span class="n">len</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">sqrt</span><span class="p">(</span><span class="n">dx</span><span class="o">^</span><span class="m">2</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">dy</span><span class="o">^</span><span class="m">2</span><span class="p">)</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="n">len</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="m">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">px</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="o">-</span><span class="n">dy</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">len</span>
+<span class="w">      </span><span class="n">py</span><span class="w"> </span><span class="o">&lt;-</span><span class="w">  </span><span class="n">dx</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">len</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">px</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0</span>
+<span class="w">      </span><span class="n">py</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="c1"># Base label position along the edge.</span>
+<span class="w">    </span><span class="n">bx</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">x0</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">label_pos</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dx</span>
+<span class="w">    </span><span class="n">by</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">y0</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">label_pos</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dy</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="c1"># Final label position after perpendicular offset.</span>
+<span class="w">    </span><span class="n">lx</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">bx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">label_offset</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">px</span>
+<span class="w">    </span><span class="n">ly</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">by</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">label_offset</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">py</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="nf">text</span><span class="p">(</span>
+<span class="w">      </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lx</span><span class="p">,</span>
+<span class="w">      </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ly</span><span class="p">,</span>
+<span class="w">      </span><span class="n">labels</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">E</span><span class="p">(</span><span class="n">g</span><span class="p">)</span><span class="o">$</span><span class="n">label</span><span class="p">[</span><span class="n">k</span><span class="p">],</span>
+<span class="w">      </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">label_color</span><span class="p">,</span>
+<span class="w">      </span><span class="n">cex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">edge_label_cex</span><span class="p">,</span>
+<span class="w">      </span><span class="n">font</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span>
+<span class="w">  </span><span class="c1"># Return the graph object invisibly, so the function can also be</span>
+<span class="w">  </span><span class="c1"># used programmatically without printing additional output.</span>
+<span class="w">  </span><span class="nf">invisible</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+  </details>
+<div class="outputs"><div class="output-label">Output 1</div><pre class="output-text">
+Kapcsolódás csomaghoz: &#x27;igraph&#x27;
+
+
+The following objects are masked from &#x27;package:stats&#x27;:
+
+    decompose, spectrum
+
+
+The following object is masked from &#x27;package:base&#x27;:
+
+    union
+
+
+</pre></div></section>
+<section class="markdown-block"><h2 id="data-generating-process">Data-generating process</h2>
+<p>This cell defines the contemporaneous structural matrix $A_0$ used in the illustrative example in Section 2. The diagonal elements are normalized to one, while the nonzero off-diagonal entries define the contemporaneous causal structure.</p>
+</section>
+
+<section class="code-card" id="cell-3">
+  <div class="code-head"><span>R code</span><span class="cell-no">Cell 3</span></div>
+  <details class="code-details">
+    <summary>Show code</summary>
+    <div class="code-block"><div class="highlight"><pre><span></span><span class="c1"># Structural contemporaneous matrix used in the illustrative example.</span>
+<span class="c1"># The variables are ordered as X1, X2, X3, and X4.</span>
+<span class="n">A0</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">matrix</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span>
+<span class="w">  </span><span class="m">1.0</span><span class="p">,</span><span class="w">  </span><span class="m">0.0</span><span class="p">,</span><span class="w">  </span><span class="m">0.0</span><span class="p">,</span><span class="w">  </span><span class="m">0.0</span><span class="p">,</span>
+<span class="w">  </span><span class="m">0.0</span><span class="p">,</span><span class="w">  </span><span class="m">1.0</span><span class="p">,</span><span class="w">  </span><span class="m">0.0</span><span class="p">,</span><span class="w">  </span><span class="m">0.0</span><span class="p">,</span>
+<span class="w"> </span><span class="m">-0.5</span><span class="p">,</span><span class="w"> </span><span class="m">-0.5</span><span class="p">,</span><span class="w">  </span><span class="m">1.0</span><span class="p">,</span><span class="w">  </span><span class="m">0.0</span><span class="p">,</span>
+<span class="w"> </span><span class="m">-0.5</span><span class="p">,</span><span class="w">  </span><span class="m">0.0</span><span class="p">,</span><span class="w"> </span><span class="m">-0.5</span><span class="p">,</span><span class="w">  </span><span class="m">1.0</span>
+<span class="p">),</span><span class="w"> </span><span class="n">nrow</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">4</span><span class="p">,</span><span class="w"> </span><span class="n">byrow</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">)</span>
+</pre></div>
+</div>
+  </details>
+</section>
+<section class="markdown-block"><h2 id="network-calculations">Network calculations</h2>
+<p>The next cell computes the theoretical network tables for the same structural system under three alternative approaches: the proposed Directed $R^2$ network, the $R^2$ network, and the Diebold-Yilmaz network. The structural shocks are standardized by setting all shock standard deviations equal to one.</p>
+</section>
+
+<section class="code-card" id="cell-4">
+  <div class="code-head"><span>R code</span><span class="cell-no">Cell 4</span></div>
+  <details class="code-details">
+    <summary>Show code</summary>
+    <div class="code-block"><div class="highlight"><pre><span></span><span class="c1"># Common arguments used in all three calculations.</span>
+<span class="c1"># sigma_eps = rep(1, nrow(A0)) sets the standard deviation of each</span>
+<span class="c1"># structural shock to one. var_names assigns readable labels to the</span>
+<span class="c1"># four variables.</span>
+<span class="n">sigma_eps</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">rep</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="nf">nrow</span><span class="p">(</span><span class="n">A0</span><span class="p">))</span>
+<span class="n">var_names</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="s">&quot;X&quot;</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="o">:</span><span class="nf">nrow</span><span class="p">(</span><span class="n">A0</span><span class="p">))</span>
+
+<span class="c1"># Proposed directed R-squared network.</span>
+<span class="n">directed</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">theoretical_R2_network</span><span class="p">(</span>
+<span class="w">  </span><span class="n">A0</span><span class="p">,</span>
+<span class="w">  </span><span class="n">sigma_eps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sigma_eps</span><span class="p">,</span>
+<span class="w">  </span><span class="n">var_names</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">var_names</span><span class="p">,</span>
+<span class="w">  </span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;directed&quot;</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="c1"># Undirected Genizi-type R-squared decomposition.</span>
+<span class="n">undirected_genizi</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">theoretical_R2_network</span><span class="p">(</span>
+<span class="w">  </span><span class="n">A0</span><span class="p">,</span>
+<span class="w">  </span><span class="n">sigma_eps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sigma_eps</span><span class="p">,</span>
+<span class="w">  </span><span class="n">var_names</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">var_names</span><span class="p">,</span>
+<span class="w">  </span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;undirected_genizi&quot;</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="c1"># Diebold--Yilmaz-type network for the same structural system.</span>
+<span class="n">dy</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">theoretical_R2_network</span><span class="p">(</span>
+<span class="w">  </span><span class="n">A0</span><span class="p">,</span>
+<span class="w">  </span><span class="n">sigma_eps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sigma_eps</span><span class="p">,</span>
+<span class="w">  </span><span class="n">var_names</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">var_names</span><span class="p">,</span>
+<span class="w">  </span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;dy&quot;</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+  </details>
+</section>
+<section class="markdown-block"><h2 id="network-plots">Network plots</h2>
+<p>The following figures correspond to the three networks reported in Figure 1 of Section 2. The plots produced here are replication-oriented versions; the final publication figure was typeset separately in LaTeX for formatting consistency.</p>
+</section>
+
+<section class="code-card" id="cell-5">
+  <div class="code-head"><span>R code</span><span class="cell-no">Cell 5</span></div>
+  <details class="code-details">
+    <summary>Show code</summary>
+    <div class="code-block"><div class="highlight"><pre><span></span><span class="c1"># Directed R-squared network.</span>
+<span class="nf">plot_net_graph</span><span class="p">(</span>
+<span class="w">  </span><span class="n">directed</span><span class="o">$</span><span class="n">total_table</span><span class="p">,</span>
+<span class="w">  </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Directed $R^2$ network&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="n">vertex_color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;orange&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="n">edge_color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;black&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="n">label_color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;blue&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="n">vertex_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">40</span><span class="p">,</span>
+<span class="w">  </span><span class="n">label_cex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1.5</span><span class="p">,</span>
+<span class="w">  </span><span class="n">edge_label_cex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1.2</span><span class="p">,</span>
+<span class="w">  </span><span class="n">edge_width_scale</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">20</span><span class="p">,</span>
+<span class="w">  </span><span class="n">arrow_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.9</span><span class="p">,</span>
+<span class="w">  </span><span class="n">arrow_width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1.8</span><span class="p">,</span>
+<span class="w">  </span><span class="n">layout_fun</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">igraph</span><span class="o">::</span><span class="n">layout_in_circle</span>
+<span class="p">)</span>
+
+<span class="c1"># Undirected Genizi-type R-squared network.</span>
+<span class="nf">plot_net_graph</span><span class="p">(</span>
+<span class="w">  </span><span class="n">undirected_genizi</span><span class="o">$</span><span class="n">total_table</span><span class="p">,</span>
+<span class="w">  </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;$R^2$ network&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="n">vertex_color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;orange&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="n">edge_color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;black&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="n">label_color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;blue&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="n">vertex_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">40</span><span class="p">,</span>
+<span class="w">  </span><span class="n">label_cex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1.5</span><span class="p">,</span>
+<span class="w">  </span><span class="n">edge_label_cex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1.2</span><span class="p">,</span>
+<span class="w">  </span><span class="n">edge_width_scale</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">20</span><span class="p">,</span>
+<span class="w">  </span><span class="n">arrow_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.9</span><span class="p">,</span>
+<span class="w">  </span><span class="n">arrow_width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1.8</span><span class="p">,</span>
+<span class="w">  </span><span class="n">layout_fun</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">igraph</span><span class="o">::</span><span class="n">layout_in_circle</span>
+<span class="p">)</span>
+
+<span class="c1"># Diebold--Yilmaz-type network.</span>
+<span class="nf">plot_net_graph</span><span class="p">(</span>
+<span class="w">  </span><span class="n">dy</span><span class="o">$</span><span class="n">total_table</span><span class="p">,</span>
+<span class="w">  </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Diebold–Yilmaz network&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="n">vertex_color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;orange&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="n">edge_color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;black&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="n">label_color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;blue&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="n">vertex_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">40</span><span class="p">,</span>
+<span class="w">  </span><span class="n">label_cex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1.5</span><span class="p">,</span>
+<span class="w">  </span><span class="n">edge_label_cex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1.2</span><span class="p">,</span>
+<span class="w">  </span><span class="n">edge_width_scale</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">20</span><span class="p">,</span>
+<span class="w">  </span><span class="n">arrow_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.9</span><span class="p">,</span>
+<span class="w">  </span><span class="n">arrow_width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1.8</span><span class="p">,</span>
+<span class="w">  </span><span class="n">layout_fun</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">igraph</span><span class="o">::</span><span class="n">layout_in_circle</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+  </details>
+<div class="outputs"><div class="output-label">Figure 1</div><div class="img-wrap"><img alt="Notebook figure" src="data:image/png;base64,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RGmdQtqKGf45y90kVNYpxK2auSZRV9cQuG7mmURZnUPiypmxebdms849RK6eqSZRUx8Qun4mrZRYHfmB1ENgtEpo5AtyD4NMkGGL0MgfJB8KyX6XygnAF2QfEDt/l694x3frDhviD4zyRy/X62o11DwHv1CCIEkafLcESigEgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCAAIgEIgEgAAiASgACIBCDA/wPaPVzQy/2tngAAAABJRU5ErkJggg=="/><div class="figure-caption">Plot with title &quot;Directed $R^2$ network&quot;</div></div><div class="output-label">Figure 2</div><div class="img-wrap"><img alt="Notebook figure" src="data:image/png;base64,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McNhELNGgk1igsMgZ5XEmsT8BkLQKkkVifkNhaB1kmkS0xsMSSsl0SRmNxyi1mp6k5jcgMharalNYm5DImy9pjWJqQ2KtBXr/3OW3RJmNijiVm1sk5jX0Ahct3FNYlqDI3HlRuzebditC4/I1RvaJOY0BkLXb9BGic1RHKRugXOVqFEs5G5DWpD+FlGjeEjeiuR4l4obIBayN6Tz7/Llv4k9umUjfmOKP3q52ZSboe1lxMUUmJRsxR4JCkwEIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQL+P9b3mFCCUBCnAAAAAElFTkSuQmCC"/><div class="figure-caption">Plot with title &quot;$R^2$ network&quot;</div></div><div class="output-label">Figure 3</div><div class="img-wrap"><img alt="Notebook figure" src="data:image/png;base64,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KBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIIAiAQIoEiCAIgECKBIggCIBAigSIOD/AR2tTwSGw18vAAAAAElFTkSuQmCC"/><div class="figure-caption">Plot with title &quot;Diebold–Yilmaz network&quot;</div></div></div></section>
+<section class="markdown-block"><h2 id="numerical-network-tables">Numerical network tables</h2>
+<p>The last cell prints the three total spillover tables used for Tables A1, A2, and A3 in Appendix A.3. These tables are the numerical counterparts of the network plots above.</p>
+</section>
+
+<section class="code-card" id="cell-6">
+  <div class="code-head"><span>R code</span><span class="cell-no">Cell 6</span></div>
+  <details class="code-details">
+    <summary>Show code</summary>
+    <div class="code-block"><div class="highlight"><pre><span></span><span class="c1"># Table A1: proposed directed R-squared network.</span>
+<span class="n">directed</span><span class="o">$</span><span class="n">total_table</span>
+
+<span class="c1"># Table A2: undirected Genizi-type R-squared network.</span>
+<span class="n">undirected_genizi</span><span class="o">$</span><span class="n">total_table</span>
+
+<span class="c1"># Table A3: Diebold--Yilmaz-type network.</span>
+<span class="n">dy</span><span class="o">$</span><span class="n">total_table</span>
+</pre></div>
+</div>
+  </details>
+<div class="outputs"><div class="output-label">Output 1</div><div class="table-wrap output-html"><table class="dataframe">
+<caption>A matrix: 4 × 4 of type dbl</caption>
+<thead>
+	<tr><th></th><th scope=col>X1</th><th scope=col>X2</th><th scope=col>X3</th><th scope=col>X4</th></tr>
+</thead>
+<tbody>
+	<tr><th scope=row>X1</th><td>0.0000000</td><td>0.0000000</td><td>0.0000000</td><td>0</td></tr>
+	<tr><th scope=row>X2</th><td>0.0000000</td><td>0.0000000</td><td>0.0000000</td><td>0</td></tr>
+	<tr><th scope=row>X3</th><td>0.1666667</td><td>0.1666667</td><td>0.0000000</td><td>0</td></tr>
+	<tr><th scope=row>X4</th><td>0.2068041</td><td>0.0190377</td><td>0.2408248</td><td>0</td></tr>
+</tbody>
+</table>
+</div><div class="output-label">Output 2</div><div class="table-wrap output-html"><table class="dataframe">
+<caption>A matrix: 4 × 4 of type dbl</caption>
+<thead>
+	<tr><th></th><th scope=col>X1</th><th scope=col>X2</th><th scope=col>X3</th><th scope=col>X4</th></tr>
+</thead>
+<tbody>
+	<tr><th scope=row>X1</th><td>0.00000000</td><td>0.01283273</td><td>0.0994163</td><td>0.22108430</td></tr>
+	<tr><th scope=row>X2</th><td>0.01584227</td><td>0.00000000</td><td>0.1604255</td><td>0.02373227</td></tr>
+	<tr><th scope=row>X3</th><td>0.09310324</td><td>0.13476056</td><td>0.0000000</td><td>0.23880287</td></tr>
+	<tr><th scope=row>X4</th><td>0.20680414</td><td>0.01903770</td><td>0.2408248</td><td>0.00000000</td></tr>
+</tbody>
+</table>
+</div><div class="output-label">Output 3</div><div class="table-wrap output-html"><table class="dataframe">
+<caption>A matrix: 4 × 4 of type dbl</caption>
+<thead>
+	<tr><th></th><th scope=col>X1</th><th scope=col>X2</th><th scope=col>X3</th><th scope=col>X4</th></tr>
+</thead>
+<tbody>
+	<tr><th scope=row>X1</th><td>0.68181818</td><td>0.00000000</td><td>0.1136364</td><td>0.20454545</td></tr>
+	<tr><th scope=row>X2</th><td>0.00000000</td><td>0.83333333</td><td>0.1388889</td><td>0.02777778</td></tr>
+	<tr><th scope=row>X3</th><td>0.09868421</td><td>0.09868421</td><td>0.5921053</td><td>0.21052632</td></tr>
+	<tr><th scope=row>X4</th><td>0.17763158</td><td>0.01973684</td><td>0.2105263</td><td>0.59210526</td></tr>
+</tbody>
+</table>
+</div></div></section>
+    </main>
+  </div>
+</div>
+</body>
+</html>

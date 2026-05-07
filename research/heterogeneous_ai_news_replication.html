@@ -1,33 +1,447 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Márton Espán — Research</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./style.css">
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Heterogeneous AI News and Magnificent Seven Hubs — Replication</title>
+<meta name="description" content="Replication files for Heterogeneous AI News and Magnificent Seven Hubs: Event-Day Causal Network Evidence by Milán Csaba Badics and Márton Espán."/>
+<style>
+:root {
+  --bg: #0f1115;
+  --panel: #161a22;
+  --panel-2: #1c2230;
+  --text: #e8ecf3;
+  --muted: #a9b4c7;
+  --accent: #ff9f43;
+  --accent-2: #ff7b54;
+  --line: #2a3142;
+  --good: #6ee7b7;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+html, body {
+  margin: 0;
+  padding: 0;
+  background:
+    radial-gradient(circle at top left, rgba(255,159,67,0.10), transparent 28%),
+    radial-gradient(circle at top right, rgba(255,123,84,0.08), transparent 24%),
+    var(--bg);
+  color: var(--text);
+  font-family: Inter, Segoe UI, Arial, sans-serif;
+  line-height: 1.65;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: #ffd19a; text-decoration: none; }
+.navbar {
+  position: static;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  gap: 36px;
+  padding: 18px 20px;
+  background: rgba(15,17,21,0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.navbar a {
+  color: #f3f5f8;
+  text-decoration: none;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.navbar a:hover { color: var(--accent); text-decoration: none; }
+.container {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 34px 24px 40px;
+}
+.hero {
+  background: linear-gradient(135deg, rgba(255,159,67,0.12), rgba(255,123,84,0.08));
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 30px 32px;
+  box-shadow: 0 14px 40px rgba(0,0,0,0.25);
+  margin-bottom: 26px;
+}
+.kicker {
+  color: var(--accent);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+}
+h1, h2, h3 { color: #fff; line-height: 1.2; }
+h1 {
+  margin: 8px 0 10px;
+  font-size: clamp(2.15rem, 5vw, 3.9rem);
+  letter-spacing: -0.04em;
+}
+h2 { margin: 0 0 14px; font-size: 28px; }
+h3 { margin: 0 0 10px; font-size: 20px; }
+.subtitle {
+  color: var(--muted);
+  font-size: 16px;
+  font-weight: 500;
+  max-width: 880px;
+}
+.authors {
+  margin-top: 18px;
+  color: var(--text);
+  font-weight: 700;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 9px 17px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #0f1115;
+  border: 1px solid rgba(255,159,67,0.75);
+  font-weight: 800;
+  box-shadow: 0 8px 24px rgba(255,159,67,0.10);
+}
+.button:hover {
+  color: #0f1115;
+  background: #ffb05f;
+  transform: translateY(-1px);
+}
+.button.secondary {
+  background: rgba(255,255,255,0.03);
+  color: var(--accent);
+  border: 1px solid rgba(255,159,67,0.35);
+}
+.button.secondary:hover {
+  background: rgba(255,159,67,0.10);
+  color: #ffd19a;
+}
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.card, .markdown-block {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 24px 26px;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+}
+.card p, .card li, .markdown-block p, .markdown-block li { color: var(--text); }
+.muted { color: var(--muted); }
+.card p:last-child, .card ul:last-child, .card ol:last-child { margin-bottom: 0; }
+.note {
+  border-left: 3px solid var(--accent);
+  background: rgba(255,159,67,0.08);
+  padding: 14px 16px;
+  border-radius: 14px;
+  color: var(--text);
+}
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255,255,255,0.02);
+}
+table {
+  width: 100%;
+  min-width: 780px;
+  border-collapse: collapse;
+}
+th, td {
+  border-bottom: 1px solid var(--line);
+  padding: 13px 14px;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  background: var(--panel-2);
+  color: #fff;
+  font-size: 0.86rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+tr:last-child td { border-bottom: 0; }
+tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+.file-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  color: var(--accent);
+}
+code {
+  background: rgba(255,255,255,0.06);
+  padding: 2px 7px;
+  border-radius: 8px;
+  color: #f4f7fb;
+  font-size: .95em;
+}
+pre {
+  margin: 14px 0 0;
+  background: #0b0e13;
+  color: #d6deeb;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 15px 16px;
+  overflow-x: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.55;
+}
+pre code { background: transparent; padding: 0; color: inherit; }
+.steps {
+  counter-reset: step;
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+.steps li {
+  counter-increment: step;
+  position: relative;
+  padding-left: 42px;
+  margin-bottom: 14px;
+}
+.steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0.08em;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255,159,67,0.12);
+  border: 1px solid rgba(255,159,67,0.24);
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.86rem;
+}
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+  margin: 10px 0 18px;
+  list-style: none;
+}
+.tag-list li {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(255,159,67,0.12);
+  border: 1px solid rgba(255,159,67,0.24);
+  color: var(--accent);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+.footer {
+  margin-top: 28px;
+  padding: 28px 20px 34px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 13px;
+  border-top: 1px solid var(--line);
+}
+.footer a { color: var(--muted); text-decoration: none; }
+.footer a:hover { color: var(--accent); text-decoration: none; }
+@media (max-width: 920px) {
+  .layout { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+  .navbar { gap: 14px; flex-wrap: wrap; padding: 14px 12px; }
+  .container { padding: 20px 12px 28px; }
+  .hero, .card, .markdown-block { padding: 18px; border-radius: 18px; }
+  h1 { font-size: 30px; }
+}
+</style>
 </head>
-
 <body>
 <div class="navbar">
-    <a href="index.html">Home</a>
-    <a href="cv.html">CV</a>
-    <a href="education.html">Education</a>
-    <a href="projects.html">Projects</a>
-    <a href="research.html">Research</a>
+  <a href="../index.html">Home</a>
+  <a href="../cv.html">CV</a>
+  <a href="../education.html">Education</a>
+  <a href="../projects.html">Projects</a>
+  <a href="../research.html">Research</a>
 </div>
 
-<div class="main-content">
-  
+<div class="container">
+  <header class="hero">
+    <div class="kicker">Replication files</div>
+    <h1>Heterogeneous AI News and Magnificent Seven Hubs</h1>
+    <div class="subtitle">
+      Event-Day Causal Network Evidence. This page collects the rendered replication notebooks for the empirical analysis, robustness checks, simulations, and placebo exercises accompanying the paper.
+    </div>
+    <div class="authors">Milán Csaba Badics and Márton Espán</div>
+    <div class="actions">
+      <a class="button" href="https://github.com/Espanm/heterogeneous-ai-news-m7-hubs-replication/" target="_blank" rel="noopener noreferrer">GitHub repository</a>
+      <a class="button secondary" href="#notebooks">View replication pages</a>
+    </div>
+  </header>
+
+  <section class="layout">
+    <article class="card">
+      <h2>Overview</h2>
+      <p>
+        The paper studies how major AI-related news events affect short-run causal network structures among large technology stocks, with special attention to the role of the Magnificent Seven firms. The empirical analysis uses high-frequency intraday financial data and directed network methods based on one-minute log returns around selected event windows.
+      </p>
+      <p>
+        The replication workflow relies on the <code>R2DAG</code> package, which implements directed <span aria-label="R squared">R<sup>2</sup></span>-based connectedness measures using contemporaneous causal identification. The pages below are rendered HTML versions of the replication notebooks, intended to make the full empirical pipeline transparent from raw intraday data preparation to event-window estimation, statistical testing, LiNGAM accuracy checks, and placebo comparisons.
+      </p>
+    </article>
+
+    <aside class="card">
+      <h2>Methodological note</h2>
+      <p>
+        Unlike reduced-form connectedness measures based directly on observed-variable forecast error variance decompositions, the proposed approach first identifies a contemporaneous causal structure and then computes directed transmission measures from structurally interpretable shocks.
+      </p>
+      <p class="note">
+        The website links open static HTML pages. To reproduce the results locally, run the original <code>.ipynb</code> notebooks in the same order.
+      </p>
+    </aside>
+  </section>
+
+  <section id="notebooks" class="card" style="margin-bottom: 24px;">
+    <h2>Replication pages</h2>
+    <p class="muted">
+      The links below assume that this page is placed inside the <code>research/</code> folder and that the rendered notebook HTML files are stored in <code>research/heterogeneous_ai_news_replication/</code>.
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Page</th>
+            <th>Role in the replication workflow</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a class="file-link" href="heterogeneous_ai_news_replication/01_read_data.html">01_read_data.html</a></td>
+            <td>Reads raw one-minute stock price files, constructs synchronized intraday log returns, and saves the cleaned dataset used in the empirical analysis.</td>
+          </tr>
+          <tr>
+            <td><a class="file-link" href="heterogeneous_ai_news_replication/02_an_illustrative_example.html">02_an_illustrative_example.html</a></td>
+            <td>Provides a deterministic illustrative example showing how the proposed directed <span aria-label="R squared">R<sup>2</sup></span> network differs from alternative network representations.</td>
+          </tr>
+          <tr>
+            <td><a class="file-link" href="heterogeneous_ai_news_replication/03_network_of_each_event.html">03_network_of_each_event.html</a></td>
+            <td>Computes and plots event-specific directed networks for the selected AI news events.</td>
+          </tr>
+          <tr>
+            <td><a class="file-link" href="heterogeneous_ai_news_replication/04_statistical_tests.html">04_statistical_tests.html</a></td>
+            <td>Performs statistical tests comparing network structures and group-level effects across event windows.</td>
+          </tr>
+          <tr>
+            <td><a class="file-link" href="heterogeneous_ai_news_replication/05_accuracy_of_the_lingam.html">05_accuracy_of_the_lingam.html</a></td>
+            <td>Evaluates the accuracy of the LiNGAM-based contemporaneous causal identification procedure in Monte Carlo experiments.</td>
+          </tr>
+          <tr>
+            <td><a class="file-link" href="heterogeneous_ai_news_replication/06_placebo_distribution.html">06_placebo_distribution.html</a></td>
+            <td>Constructs placebo distributions and compares event-day network statistics to non-event benchmark distributions.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="layout">
+    <article class="card">
+      <h2>Data requirements</h2>
+      <p>
+        The raw high-frequency data are not included in the replication folder. To run the notebooks, users need to provide the underlying one-minute price data locally. The input folder should contain one <code>.txt</code> file for each ticker, named only by the ticker symbol.
+      </p>
+      <pre><code>AAPL.txt
+MSFT.txt
+NVDA.txt
+AMZN.txt
+META.txt
+GOOG.txt
+TSLA.txt
+SP500.txt</code></pre>
+      <p>
+        The file <code>SP500.txt</code> is required because the empirical workflow uses the market index for demarketing. The first notebook creates the cleaned one-minute log return dataset and saves it as <code>full_dataset.csv</code>, which is then used by the later notebooks.
+      </p>
+    </article>
+
+    <aside class="card">
+      <h2>Main ticker groups</h2>
+      <h3>Magnificent Seven</h3>
+      <ul class="tag-list">
+        <li>NVDA</li><li>MSFT</li><li>AMZN</li><li>META</li><li>GOOG</li><li>TSLA</li><li>AAPL</li>
+      </ul>
+      <h3>Computing</h3>
+      <ul class="tag-list">
+        <li>AVGO</li><li>AMD</li><li>MU</li>
+      </ul>
+      <h3>Platform</h3>
+      <ul class="tag-list">
+        <li>ORCL</li><li>IBM</li><li>PLTR</li><li>CSCO</li>
+      </ul>
+      <h3>Adoption / disruption</h3>
+      <ul class="tag-list">
+        <li>CRM</li><li>NOW</li><li>INTU</li><li>WDAY</li><li>ADBE</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="layout">
+    <article class="card">
+      <h2>Installation</h2>
+      <p>
+        The notebooks require R and several standard R packages. The main package used for the directed <span aria-label="R squared">R<sup>2</sup></span> network calculations is <code>R2DAG</code>, which can be installed from GitHub:
+      </p>
+      <pre><code>devtools::install_github(
+  "espanm/R2DAG",
+  dependencies = FALSE,
+  upgrade = "never"
+)</code></pre>
+      <p>
+        Depending on the notebook, additional packages such as <code>readr</code>, <code>dplyr</code>, <code>purrr</code>, <code>zoo</code>, <code>xts</code>, <code>openxlsx</code>, <code>igraph</code>, <code>ggplot2</code>, and <code>devtools</code> may also be required.
+      </p>
+    </article>
+
+    <aside class="card">
+      <h2>How to reproduce</h2>
+      <ol class="steps">
+        <li>Run <code>01_read_data.ipynb</code> locally to construct <code>full_dataset.csv</code>.</li>
+        <li>Run <code>02_an_illustrative_example.ipynb</code> for the theoretical example.</li>
+        <li>Run <code>03_network_of_each_event.ipynb</code> for event-specific networks.</li>
+        <li>Run <code>04_statistical_tests.ipynb</code> for the testing results.</li>
+        <li>Run <code>05_accuracy_of_the_lingam.ipynb</code> for LiNGAM accuracy simulations.</li>
+        <li>Run <code>06_placebo_distribution.ipynb</code> for placebo exercises.</li>
+      </ol>
+    </aside>
+  </section>
+
+  <section class="card">
+    <h2>Output and citation</h2>
+    <p>
+      The notebooks produce cleaned datasets, network tables, statistical summaries, and figures used in the paper and appendix. Some figures in the final paper may differ slightly from the notebook output because of formatting adjustments for publication.
+    </p>
+    <p>
+      If you use these replication files, please cite the accompanying paper:
+    </p>
+    <pre><code>Badics, Milán Csaba and Espán, Márton.
+"Heterogeneous AI News and Magnificent Seven Hubs: Event-Day Causal Network Evidence."</code></pre>
+    <p class="muted">
+      These files are intended for academic replication purposes. Please contact the authors before reusing the code or results in other projects.
+    </p>
+  </section>
 </div>
 
-<div class="footer">
-    <a href="mailto:marton.espan@stud.uni-corvinus.hu">marton.espan@stud.uni-corvinus.hu</a>
-    |
-    <a href="mailto:Marton.Espan@ksh.hu">Marton.Espan@ksh.hu</a>
-    |
-    <a href="https://www.linkedin.com/in/marton-espan/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-    |
-    <a href="https://github.com/Espanm" target="_blank" rel="noopener noreferrer">GitHub</a>
-</div>
+<footer class="footer">
+  <a href="../research.html">Back to Research</a>
+</footer>
 </body>
 </html>
